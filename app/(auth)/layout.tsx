@@ -1,7 +1,62 @@
+import Link from "next/link";
+import { ArrowRight, CheckCircle2, Globe2, Zap } from "lucide-react";
+
+const authHighlights = [
+  "Create Busha-backed payment links in seconds",
+  "Turn payer details into live payment requests with QR and status tracking",
+  "Manage customers, recipients, settlements, and webhook delivery from one dashboard",
+];
+
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-busha-slate to-busha-slate-mid flex items-center justify-center p-4">
-      {children}
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(0,200,150,0.18),_transparent_28%),linear-gradient(180deg,_#0d1b2a_0%,_#102132_40%,_#f4f9f8_40%,_#f4f9f8_100%)] lg:bg-[linear-gradient(90deg,_#0d1b2a_0%,_#102132_48%,_#f4f9f8_48%,_#f4f9f8_100%)]">
+      <div className="mx-auto grid min-h-screen max-w-7xl items-stretch gap-8 px-4 py-6 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-8">
+        <section className="hidden flex-col justify-between rounded-[2rem] border border-white/10 bg-busha-slate/90 p-8 text-white shadow-2xl shadow-slate-950/20 backdrop-blur lg:flex">
+          <div>
+            <Link href="/" className="flex items-center gap-3">
+              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary text-white">
+                <Zap className="h-5 w-5" />
+              </span>
+              <div>
+                <p className="font-display text-2xl font-bold">Fluent</p>
+                <p className="text-sm text-white/55">Hackathon submission build</p>
+              </div>
+            </Link>
+
+            <div className="mt-16">
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-white/80">
+                <Globe2 className="h-3.5 w-3.5 text-primary" />
+                Cross-border collection workflow for freelancers and digital teams
+              </div>
+
+              <h1 className="mt-6 max-w-xl font-display text-5xl font-extrabold leading-[0.95] tracking-[-0.04em]">
+                Cleaner payment operations, built on top of Busha.
+              </h1>
+
+              <p className="mt-6 max-w-xl text-base leading-7 text-white/68">
+                Fluent is the product layer: shareable links, real payment requests, live status tracking,
+                customer onboarding, and operational dashboards for small African businesses.
+              </p>
+
+              <div className="mt-10 space-y-3">
+                {authHighlights.map((highlight) => (
+                  <div key={highlight} className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 p-4">
+                    <CheckCircle2 className="mt-0.5 h-5 w-5 flex-shrink-0 text-primary" />
+                    <p className="text-sm leading-6 text-white/80">{highlight}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <Link href="/overview" className="inline-flex items-center gap-2 text-sm font-medium text-white/75 transition-colors hover:text-white">
+            View dashboard preview
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </section>
+
+        <section className="flex items-center justify-center py-6 lg:py-10">{children}</section>
+      </div>
     </div>
   );
 }

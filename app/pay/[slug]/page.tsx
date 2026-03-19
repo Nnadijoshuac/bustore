@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import Image from "next/image";
+import { useState } from "react";
 import { useParams } from "next/navigation";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import QRCode from "qrcode";
@@ -30,7 +31,6 @@ export default function PublicPaymentPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [copied, setCopied] = useState(false);
-  const [qrCodeUrl, setQrCodeUrl] = useState("");
 
   const { data: link, error, isLoading } = useQuery({
     queryKey: ["payment-link", slugValue],
@@ -87,23 +87,23 @@ export default function PublicPaymentPage() {
     },
   });
 
-  useEffect(() => {
-    const address = paymentRequest?.pay_in?.address;
-    const network = paymentRequest?.pay_in?.network;
-    const amountValue = paymentRequest?.source_amount;
-    const currency = paymentRequest?.source_currency;
+  const qrPayload = paymentRequest?.pay_in?.address
+    ? `${paymentRequest.pay_in.address}${paymentRequest.pay_in.network ? `?network=${paymentRequest.pay_in.network}` : ""}${
+        paymentRequest.source_amount && paymentRequest.source_currency
+          ? `&amount=${paymentRequest.source_amount}&currency=${paymentRequest.source_currency}`
+          : ""
+      }`
+    : "";
 
-    if (!address) {
-      setQrCodeUrl("");
-      return;
-    }
-
-    const qrPayload = `${address}${network ? `?network=${network}` : ""}${amountValue && currency ? `&amount=${amountValue}&currency=${currency}` : ""}`;
-    void QRCode.toDataURL(qrPayload, {
-      margin: 1,
-      width: 220,
-    }).then(setQrCodeUrl);
-  }, [paymentRequest?.pay_in?.address, paymentRequest?.pay_in?.network, paymentRequest?.source_amount, paymentRequest?.source_currency]);
+  const { data: qrCodeUrl = "" } = useQuery({
+    queryKey: ["payment-request-qr", qrPayload],
+    queryFn: () =>
+      QRCode.toDataURL(qrPayload, {
+        margin: 1,
+        width: 220,
+      }),
+    enabled: Boolean(qrPayload),
+  });
 
   if (isLoading) {
     return (
@@ -270,7 +270,14 @@ export default function PublicPaymentPage() {
 
               {qrCodeUrl && (
                 <div className="flex justify-center rounded-2xl border border-border bg-white p-4">
-                  <img src={qrCodeUrl} alt="Payment address QR code" className="h-full w-full max-w-[220px]" />
+                  <Image
+                    src={qrCodeUrl}
+                    alt="Payment address QR code"
+                    width={220}
+                    height={220}
+                    unoptimized
+                    className="h-full w-full max-w-[220px]"
+                  />
                 </div>
               )}
 

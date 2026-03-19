@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import type { CreatePaymentLinkInput, PaymentLink } from "@/types";
+import type { CreatePaymentLinkInput } from "@/types";
 import { addPaymentLink, listPaymentLinks, upsertPaymentLinks } from "@/lib/api/payment-link-store";
 import { createBushaClient } from "@/lib/api/busha-client";
 import { normalizePaymentLink } from "@/lib/api/busha-normalizers";

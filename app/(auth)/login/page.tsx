@@ -1,50 +1,75 @@
 "use client";
+
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Zap } from "lucide-react";
+import { ArrowRight, LockKeyhole, Mail, Zap } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
     setLoading(true);
-    await new Promise(r => setTimeout(r, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
     router.push("/overview");
   };
 
   return (
-    <div className="bg-card rounded-2xl shadow-xl p-8 w-full max-w-md">
-      <div className="flex items-center gap-2 mb-6">
-        <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-          <Zap className="w-4 h-4 text-white" />
+    <div className="w-full max-w-md rounded-[2rem] border border-white/70 bg-white/90 p-6 shadow-2xl shadow-slate-200/70 backdrop-blur sm:p-8">
+      <div className="mb-8 flex items-center gap-3">
+        <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-busha-slate text-white">
+          <Zap className="h-5 w-5" />
+        </span>
+        <div>
+          <p className="font-display text-xl font-bold">Fluent</p>
+          <p className="text-xs text-muted-foreground">Demo login</p>
         </div>
-        <span className="font-display font-bold text-xl">Fluent</span>
       </div>
-      <h1 className="font-display font-bold text-2xl mb-1">Welcome back</h1>
-      <p className="text-muted-foreground text-sm mb-6">Sign in to your account</p>
-      <form onSubmit={handleSubmit} className="space-y-4">
+
+      <h1 className="font-display text-3xl font-bold tracking-tight text-busha-slate">Welcome back</h1>
+      <p className="mt-2 text-sm leading-6 text-muted-foreground">
+        Sign in to explore the demo workspace and test the payment request flow.
+      </p>
+
+      <form onSubmit={handleSubmit} className="mt-8 space-y-4">
         <div>
-          <label className="text-sm font-medium block mb-1.5">Email</label>
-          <input type="email" defaultValue="ade@adebayodesigns.com" className="input-base" />
+          <label className="mb-1.5 block text-sm font-medium">Email</label>
+          <div className="relative">
+            <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <input type="email" defaultValue="ade@adebayodesigns.com" className="input-base pl-10" />
+          </div>
         </div>
+
         <div>
-          <label className="text-sm font-medium block mb-1.5">Password</label>
-          <input type="password" defaultValue="demo1234" className="input-base" />
+          <label className="mb-1.5 block text-sm font-medium">Password</label>
+          <div className="relative">
+            <LockKeyhole className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <input type="password" defaultValue="demo1234" className="input-base pl-10" />
+          </div>
         </div>
-        <button type="submit" disabled={loading} className="btn-primary w-full justify-center py-2.5">
-          {loading ? "Signing in…" : "Sign In"}
+
+        <button type="submit" disabled={loading} className="btn-primary mt-2 w-full justify-center py-3 text-base">
+          {loading ? "Signing in..." : "Enter demo workspace"}
         </button>
       </form>
-      <p className="text-center text-sm text-muted-foreground mt-4">
-        No account?{" "}
-        <Link href="/register" className="text-primary font-medium hover:underline">Create one</Link>
+
+      <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+        Demo mode is enabled. Any credentials will continue to the product walkthrough.
+      </div>
+
+      <p className="mt-5 text-center text-sm text-muted-foreground">
+        Need an account?{" "}
+        <Link href="/register" className="font-medium text-primary hover:underline">
+          Create one
+        </Link>
       </p>
-      <p className="text-center text-xs text-muted-foreground mt-2 bg-amber-50 p-2 rounded-lg border border-amber-200">
-        🧪 Demo mode — use any credentials
-      </p>
+
+      <Link href="/" className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-busha-slate/70 hover:text-busha-slate">
+        Back to product overview
+        <ArrowRight className="h-4 w-4" />
+      </Link>
     </div>
   );
 }

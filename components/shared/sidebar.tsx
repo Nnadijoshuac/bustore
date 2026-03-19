@@ -1,132 +1,170 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
-  LayoutDashboard, ArrowDownLeft, Link2, Users,
-  ArrowUpRight, Webhook, Settings, ChevronLeft,
-  Zap, TestTube2,
+  ArrowDownLeft,
+  ArrowUpRight,
+  ChevronLeft,
+  LayoutDashboard,
+  Link2,
+  Settings,
+  TestTube2,
+  Users,
+  Webhook,
+  X,
+  Zap,
 } from "lucide-react";
 import { useAppStore } from "@/lib/store/app.store";
 import { DEMO_USER } from "@/lib/api/demo-data";
 
 const NAV_ITEMS = [
-  { href: "/overview",       label: "Overview",       icon: LayoutDashboard },
-  { href: "/transactions",   label: "Transactions",   icon: ArrowDownLeft },
-  { href: "/payment-links",  label: "Payment Links",  icon: Link2 },
-  { href: "/recipients",     label: "Recipients",     icon: Users },
-  { href: "/customers",      label: "Customers",      icon: Users },
-  { href: "/settlements",    label: "Settlements",    icon: ArrowUpRight },
-  { href: "/webhooks",       label: "Webhooks",       icon: Webhook },
+  { href: "/overview", label: "Overview", icon: LayoutDashboard },
+  { href: "/transactions", label: "Transactions", icon: ArrowDownLeft },
+  { href: "/payment-links", label: "Payment Links", icon: Link2 },
+  { href: "/recipients", label: "Recipients", icon: Users },
+  { href: "/customers", label: "Customers", icon: Users },
+  { href: "/settlements", label: "Settlements", icon: ArrowUpRight },
+  { href: "/webhooks", label: "Webhooks", icon: Webhook },
 ];
 
-const BOTTOM_NAV = [
-  { href: "/settings", label: "Settings", icon: Settings },
-];
+const BOTTOM_NAV = [{ href: "/settings", label: "Settings", icon: Settings }];
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { sidebarOpen, toggleSidebar, isDemoMode } = useAppStore();
+  const {
+    sidebarOpen,
+    toggleSidebar,
+    isDemoMode,
+    mobileSidebarOpen,
+    toggleMobileSidebar,
+    closeMobileSidebar,
+  } = useAppStore();
+
+  const showExpanded = mobileSidebarOpen || sidebarOpen;
+
+  useEffect(() => {
+    closeMobileSidebar();
+  }, [pathname, closeMobileSidebar]);
 
   return (
-    <aside
-      className={cn(
-        "fixed left-0 top-0 h-screen z-40 flex flex-col",
-        "bg-card border-r border-border",
-        "transition-all duration-300 ease-in-out",
-        sidebarOpen ? "w-60" : "w-[68px]"
-      )}
-    >
-      {/* Logo */}
-      <div className={cn(
-        "flex items-center h-16 px-4 border-b border-border",
-        sidebarOpen ? "gap-3" : "justify-center"
-      )}>
-        <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center flex-shrink-0">
-          <Zap className="w-4 h-4 text-white" />
-        </div>
-        {sidebarOpen && (
-          <span className="font-display font-bold text-lg tracking-tight">
-            Fluent
-          </span>
+    <>
+      <div
+        className={cn(
+          "fixed inset-0 z-30 bg-slate-950/40 backdrop-blur-sm transition-opacity md:hidden",
+          mobileSidebarOpen ? "opacity-100" : "pointer-events-none opacity-0"
         )}
-      </div>
+        onClick={closeMobileSidebar}
+      />
 
-      {/* Demo badge */}
-      {isDemoMode && sidebarOpen && (
-        <div className="mx-3 mt-3 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-50 border border-amber-200">
-          <TestTube2 className="w-3.5 h-3.5 text-amber-600" />
-          <span className="text-xs font-medium text-amber-700">Demo Mode</span>
+      <aside
+        className={cn(
+          "fixed left-0 top-0 z-40 flex h-screen flex-col border-r border-border bg-card transition-all duration-300 ease-in-out",
+          "w-72 md:w-auto",
+          mobileSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
+          sidebarOpen ? "md:w-60" : "md:w-[68px]"
+        )}
+      >
+        <div
+          className={cn(
+            "flex h-16 items-center border-b border-border px-4",
+            showExpanded ? "gap-3" : "justify-center"
+          )}
+        >
+          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary text-white">
+            <Zap className="h-4 w-4" />
+          </div>
+          {showExpanded ? (
+            <>
+              <div className="min-w-0 flex-1">
+                <span className="font-display text-lg font-bold tracking-tight">Fluent</span>
+                <p className="text-xs text-muted-foreground">Busha-powered ops</p>
+              </div>
+              <button
+                type="button"
+                onClick={toggleMobileSidebar}
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary md:hidden"
+                aria-label="Close navigation"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </>
+          ) : null}
         </div>
-      )}
 
-      {/* Nav */}
-      <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
-        {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
-          const active = pathname === href || pathname.startsWith(href + "/");
-          return (
+        {isDemoMode && showExpanded ? (
+          <div className="mx-3 mt-3 flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-1.5">
+            <TestTube2 className="h-3.5 w-3.5 text-amber-600" />
+            <span className="text-xs font-medium text-amber-700">Demo Mode</span>
+          </div>
+        ) : null}
+
+        <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 py-4">
+          {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
+            const active = pathname === href || pathname.startsWith(`${href}/`);
+
+            return (
+              <Link
+                key={href}
+                href={href}
+                className={cn(
+                  active ? "sidebar-link-active" : "sidebar-link",
+                  !showExpanded && "justify-center px-2"
+                )}
+                title={!showExpanded ? label : undefined}
+              >
+                <Icon className="h-4 w-4 flex-shrink-0" />
+                {showExpanded ? <span>{label}</span> : null}
+              </Link>
+            );
+          })}
+        </nav>
+
+        <div className="space-y-0.5 border-t border-border px-3 pb-4 pt-3">
+          {BOTTOM_NAV.map(({ href, label, icon: Icon }) => (
             <Link
               key={href}
               href={href}
               className={cn(
-                active ? "sidebar-link-active" : "sidebar-link",
-                !sidebarOpen && "justify-center px-2"
+                pathname === href ? "sidebar-link-active" : "sidebar-link",
+                !showExpanded && "justify-center px-2"
               )}
-              title={!sidebarOpen ? label : undefined}
+              title={!showExpanded ? label : undefined}
             >
-              <Icon className="w-4 h-4 flex-shrink-0" />
-              {sidebarOpen && <span>{label}</span>}
+              <Icon className="h-4 w-4 flex-shrink-0" />
+              {showExpanded ? <span>{label}</span> : null}
             </Link>
-          );
-        })}
-      </nav>
+          ))}
 
-      {/* Bottom */}
-      <div className="px-3 pb-4 border-t border-border pt-3 space-y-0.5">
-        {BOTTOM_NAV.map(({ href, label, icon: Icon }) => (
-          <Link
-            key={href}
-            href={href}
-            className={cn(
-              pathname === href ? "sidebar-link-active" : "sidebar-link",
-              !sidebarOpen && "justify-center px-2"
-            )}
-            title={!sidebarOpen ? label : undefined}
+          {showExpanded ? (
+            <div className="mt-1 flex items-center gap-2.5 px-3 py-2">
+              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary/20 text-xs font-bold text-primary">
+                {DEMO_USER.full_name
+                  .split(" ")
+                  .map((name) => name[0])
+                  .join("")}
+              </div>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-medium">{DEMO_USER.full_name}</p>
+                <p className="truncate text-xs text-muted-foreground">{DEMO_USER.email}</p>
+              </div>
+            </div>
+          ) : null}
+
+          <button
+            type="button"
+            onClick={toggleSidebar}
+            className={cn("sidebar-link mt-1 hidden w-full md:flex", !showExpanded && "justify-center px-2")}
           >
-            <Icon className="w-4 h-4 flex-shrink-0" />
-            {sidebarOpen && <span>{label}</span>}
-          </Link>
-        ))}
-
-        {/* User */}
-        {sidebarOpen && (
-          <div className="flex items-center gap-2.5 px-3 py-2 mt-1">
-            <div className="w-8 h-8 rounded-full bg-primary/20 text-primary text-xs font-bold flex items-center justify-center flex-shrink-0">
-              {DEMO_USER.full_name.split(" ").map(n => n[0]).join("")}
-            </div>
-            <div className="min-w-0">
-              <p className="text-sm font-medium truncate">{DEMO_USER.full_name}</p>
-              <p className="text-xs text-muted-foreground truncate">{DEMO_USER.email}</p>
-            </div>
-          </div>
-        )}
-
-        {/* Collapse toggle */}
-        <button
-          onClick={toggleSidebar}
-          className={cn(
-            "sidebar-link w-full mt-1",
-            !sidebarOpen && "justify-center px-2"
-          )}
-        >
-          <ChevronLeft className={cn(
-            "w-4 h-4 flex-shrink-0 transition-transform duration-300",
-            !sidebarOpen && "rotate-180"
-          )} />
-          {sidebarOpen && <span>Collapse</span>}
-        </button>
-      </div>
-    </aside>
+            <ChevronLeft
+              className={cn("h-4 w-4 flex-shrink-0 transition-transform duration-300", !sidebarOpen && "rotate-180")}
+            />
+            {showExpanded ? <span>Collapse</span> : null}
+          </button>
+        </div>
+      </aside>
+    </>
   );
 }

@@ -1,10 +1,3 @@
-// ============================================================
-// Fluent Service Layer
-// All Busha API calls are isolated here.
-// TODO: Replace placeholder implementations with real API calls
-// when Busha API credentials and docs are confirmed.
-// ============================================================
-
 import {
   Transaction,
   PaymentLink,
@@ -29,7 +22,6 @@ import {
   DEMO_SETTLEMENTS,
   DEMO_STATS,
   DEMO_CHART_DATA,
-  DEMO_WEBHOOKS,
   DEMO_ACCOUNT,
 } from "./demo-data";
 
@@ -139,9 +131,11 @@ export async function getPaymentRequest(id: string): Promise<PaymentRequest> {
 }
 
 export async function togglePaymentLink(
-  id: string,
-  status: "active" | "inactive"
+  _id: string,
+  _status: "active" | "inactive"
 ): Promise<void> {
+  void _id;
+  void _status;
   // TODO: PATCH /api/v1/payment-links/{id}
   await delay(400);
 }

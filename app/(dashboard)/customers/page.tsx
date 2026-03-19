@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CheckCircle2, Plus, ShieldCheck, UserRound, X } from "lucide-react";
@@ -56,7 +56,7 @@ export default function CustomersPage() {
     register,
     handleSubmit,
     reset,
-    watch,
+    control,
     formState: { errors },
   } = useForm<CustomerFormValues>({
     resolver: zodResolver(createCustomerBaseSchema.omit({ identifying_information: true })),
@@ -129,7 +129,10 @@ export default function CustomersPage() {
       }),
   });
 
-  const selectedDocumentType = watch("document_type");
+  const selectedDocumentType = useWatch({
+    control,
+    name: "document_type",
+  });
 
   return (
     <div>

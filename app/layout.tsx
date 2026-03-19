@@ -4,7 +4,7 @@ import { Providers } from "@/components/shared/providers";
 
 export const metadata: Metadata = {
   title: {
-    default: "Fluent — Global Payments for Creators & Businesses",
+    default: "Fluent - Global Payments for Creators and Businesses",
     template: "%s | Fluent",
   },
   description:

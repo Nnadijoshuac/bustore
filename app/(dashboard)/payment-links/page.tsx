@@ -10,7 +10,7 @@ import { formatCurrency, formatDate } from "@/lib/utils";
 import { useToast } from "@/components/ui/toaster";
 import { createPaymentLinkSchema } from "@/lib/validations";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { Plus, Link2, Copy, ExternalLink, X } from "lucide-react";
 import type { CreatePaymentLinkInput } from "@/lib/validations";
 import { Currency, PaymentLink } from "@/types";
@@ -32,14 +32,17 @@ export default function PaymentLinksPage() {
     register,
     handleSubmit,
     reset,
-    watch,
+    control,
     setValue,
     formState: { errors },
   } = useForm<CreatePaymentLinkInput>({
     resolver: zodResolver(createPaymentLinkSchema),
     defaultValues: { currency: "USD", target_currency: "USDT", one_time: false, allow_customer_amount: false },
   });
-  const allowCustomerAmount = watch("allow_customer_amount");
+  const allowCustomerAmount = useWatch({
+    control,
+    name: "allow_customer_amount",
+  });
 
   useEffect(() => {
     if (!allowCustomerAmount) {

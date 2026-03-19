@@ -8,7 +8,7 @@ import { Topbar } from "@/components/shared/topbar";
 import { StatusBadge } from "@/components/ui/badge";
 import { TableRowSkeleton } from "@/components/ui/skeleton";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import { ArrowDownLeft, ArrowUpRight, Search, Filter } from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, Search } from "lucide-react";
 
 const FILTERS = ["all", "incoming", "outgoing", "settlement"];
 const STATUS_FILTERS = ["all", "completed", "pending", "processing", "failed"];

@@ -36,7 +36,6 @@ export default function SettlementsPage() {
   });
 
   const amountNum = parseFloat(amount) || 0;
-  const localAmount = amountNum * DEMO_RATE;
   const fee = amountNum * 0.003;
 
   return (

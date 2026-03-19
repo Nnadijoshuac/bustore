@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createRecipient, getRecipientRequirements, getRecipients } from "@/lib/api/service";
 import { Topbar } from "@/components/shared/topbar";
@@ -35,10 +35,6 @@ export default function RecipientsPage() {
     enabled: showModal,
   });
 
-  useEffect(() => {
-    setFieldValues({});
-  }, [countryId, currencyId]);
-
   const mutation = useMutation({
     mutationFn: (input: CreateRecipientInput) => createRecipient(input),
     onSuccess: (recipient) => {
@@ -62,6 +58,7 @@ export default function RecipientsPage() {
     const option = COUNTRY_OPTIONS.find((item) => item.value === nextCountryId);
     setCountryId(nextCountryId);
     setCurrencyId(option?.currency || "NGN");
+    setFieldValues({});
   }
 
   function renderField(requirement: RecipientRequirement) {

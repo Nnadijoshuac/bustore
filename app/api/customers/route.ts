@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import type { CreateCustomerInput, Customer } from "@/types";
+import type { CreateCustomerInput } from "@/types";
 import { listCustomers, upsertCustomer } from "@/lib/api/customer-store";
 import { createCustomerSchema } from "@/lib/validations/index";
 import { createBushaClient } from "@/lib/api/busha-client";
