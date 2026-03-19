@@ -1,0 +1,174 @@
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Google Fonts ─────────────────────────────── */
+@layer base {
+  :root {
+    --background: 220 25% 97%;
+    --foreground: 215 35% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 215 35% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 35% 12%;
+    --primary: 162 100% 39%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 215 25% 95%;
+    --secondary-foreground: 215 35% 12%;
+    --muted: 215 20% 93%;
+    --muted-foreground: 215 20% 45%;
+    --accent: 162 100% 39%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 215 20% 88%;
+    --input: 215 20% 88%;
+    --ring: 162 100% 39%;
+    --radius: 0.75rem;
+    --font-geist-sans: 'DM Sans', system-ui, sans-serif;
+    --font-clash: 'Syne', system-ui, sans-serif;
+  }
+
+  .dark {
+    --background: 215 35% 9%;
+    --foreground: 210 20% 95%;
+    --card: 215 30% 12%;
+    --card-foreground: 210 20% 95%;
+    --popover: 215 30% 12%;
+    --popover-foreground: 210 20% 95%;
+    --primary: 162 100% 39%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 215 25% 16%;
+    --secondary-foreground: 210 20% 85%;
+    --muted: 215 25% 16%;
+    --muted-foreground: 215 15% 55%;
+    --accent: 162 100% 39%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 62% 45%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 215 20% 20%;
+    --input: 215 20% 20%;
+    --ring: 162 100% 39%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-geist-sans);
+    font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-clash);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+}
+
+/* ─── Scrollbar ────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 99px;
+}
+
+/* ─── Selection ────────────────────────────────── */
+::selection {
+  background: hsl(162 100% 39% / 0.2);
+  color: hsl(var(--foreground));
+}
+
+/* ─── Utility classes ──────────────────────────── */
+@layer components {
+  .card-glass {
+    @apply bg-card border border-border rounded-xl shadow-sm;
+  }
+
+  .stat-card {
+    @apply card-glass p-5 flex flex-col gap-2;
+  }
+
+  .badge-status {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium;
+  }
+
+  .badge-green {
+    @apply badge-status bg-emerald-50 text-emerald-700;
+  }
+
+  .badge-yellow {
+    @apply badge-status bg-amber-50 text-amber-700;
+  }
+
+  .badge-red {
+    @apply badge-status bg-red-50 text-red-700;
+  }
+
+  .badge-slate {
+    @apply badge-status bg-slate-100 text-slate-600;
+  }
+
+  .sidebar-link {
+    @apply flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium
+           text-muted-foreground hover:text-foreground hover:bg-secondary
+           transition-all duration-150;
+  }
+
+  .sidebar-link-active {
+    @apply sidebar-link bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground
+           text-sm font-medium rounded-lg hover:bg-busha-green-dark
+           transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center gap-2 px-4 py-2.5 bg-secondary text-secondary-foreground
+           text-sm font-medium rounded-lg hover:bg-muted
+           transition-colors duration-150;
+  }
+
+  .input-base {
+    @apply w-full px-3 py-2.5 text-sm bg-background border border-input rounded-lg
+           placeholder:text-muted-foreground focus:outline-none focus:ring-2
+           focus:ring-ring/30 focus:border-ring transition-colors;
+  }
+
+  .demo-banner {
+    @apply flex items-center gap-2 px-4 py-2 bg-amber-50 border-b border-amber-200
+           text-amber-800 text-sm font-medium;
+  }
+}
+
+/* ─── Shimmer loading ──────────────────────────── */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--muted)) 25%,
+    hsl(var(--secondary)) 50%,
+    hsl(var(--muted)) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s linear infinite;
+}
+
+/* ─── Number animate ───────────────────────────── */
+.number-animate {
+  display: inline-block;
+  animation: count-up 0.5s ease forwards;
+}
