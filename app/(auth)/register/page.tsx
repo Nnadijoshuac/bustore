@@ -53,17 +53,11 @@ export default function RegisterPage() {
             <label className="mb-1.5 block text-sm font-medium">Full Name</label>
             <div className="relative">
               <UserRound className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <input type="text" placeholder="Nnadi Joshua" className="input-base pl-10" />
+              <input type="text" placeholder="Joshua Serenity Nnadi" className="input-base pl-10" />
             </div>
           </div>
 
-          <div className="sm:col-span-2">
-            <label className="mb-1.5 block text-sm font-medium">Email</label>
-            <div className="relative">
-              <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <input type="email" placeholder="you@business.com" className="input-base pl-10" />
-            </div>
-          </div>
+
 
           <div className="sm:col-span-2">
             <label className="mb-1.5 block text-sm font-medium">Business Name</label>
@@ -72,6 +66,17 @@ export default function RegisterPage() {
               <input type="text" placeholder="Your Studio" className="input-base pl-10" />
             </div>
           </div>
+
+
+          <div className="sm:col-span-2">
+            <label className="mb-1.5 block text-sm font-medium">Email</label>
+            <div className="relative">
+              <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <input type="email" placeholder="serenity@business.com" className="input-base pl-10" />
+            </div>
+          </div>
+
+
 
           <div>
             <label className="mb-1.5 block text-sm font-medium">Country</label>
