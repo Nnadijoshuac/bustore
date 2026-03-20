@@ -25,7 +25,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="w-full max-w-xl rounded-[2rem] border border-white/70 bg-white/92 p-6 shadow-2xl shadow-slate-200/70 backdrop-blur sm:p-8">
+    <div className="w-full max-w-[540px] rounded-[3rem] border border-white/70 bg-white/92 p-6 shadow-2xl shadow-slate-200/70 backdrop-blur sm:p-10 lg:mr-auto">
       <div className="mb-8 flex items-center gap-3">
         <Image
           src="/logo_fluent.png"

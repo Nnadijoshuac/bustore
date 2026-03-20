@@ -18,7 +18,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="w-full max-w-md rounded-[2rem] border border-white/70 bg-white/90 p-6 shadow-2xl shadow-slate-200/70 backdrop-blur sm:p-8">
+    <div className="w-full max-w-[440px] rounded-[2rem] border border-white/70 bg-white/90 p-6 shadow-2xl shadow-slate-200/70 backdrop-blur sm:p-8">
       <div className="mb-8 flex items-center gap-3">
         <Image
           src="/logo_fluent.png"
