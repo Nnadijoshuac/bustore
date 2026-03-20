@@ -4,6 +4,7 @@
 // ============================================================
 
 export type Currency = "USD" | "EUR" | "GBP" | "NGN" | "GHS" | "KES" | "ZAR";
+export type PaymentTargetCurrency = "USDT" | "BTC" | "NGN" | "USD" | "KES";
 
 export type TransactionStatus =
   | "pending"
@@ -70,7 +71,7 @@ export interface PaymentLink {
   description?: string;
   amount?: number; // null = customer-defined
   currency: Currency;
-  target_currency?: string;
+  target_currency?: PaymentTargetCurrency;
   status: PaymentLinkStatus;
   slug: string; // e.g. pay.bushapay.com/pay/{slug}
   hosted_url?: string;
@@ -86,7 +87,7 @@ export interface CreatePaymentLinkInput {
   description?: string;
   amount?: number;
   currency: Currency;
-  target_currency?: string;
+  target_currency?: PaymentTargetCurrency;
   one_time?: boolean;
   allow_customer_amount?: boolean;
   min_amount?: number;
@@ -114,6 +115,12 @@ export interface PaymentRequest {
     type: string;
     address?: string;
     network?: string;
+    memo?: string;
+    account_name?: string;
+    bank_name?: string;
+    account_number?: string;
+    provider?: string;
+    phone_number?: string;
     expires_at?: string;
   };
   timeline?: {

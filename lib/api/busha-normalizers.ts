@@ -1,6 +1,6 @@
 import { DEMO_ACCOUNT } from "./demo-data";
 import { getBushaCheckoutUrl } from "./busha-client";
-import type { Customer, PaymentLink, Recipient, RecipientField, RecipientRequirement } from "@/types";
+import type { Customer, PaymentLink, PaymentTargetCurrency, Recipient, RecipientField, RecipientRequirement } from "@/types";
 
 function asRecord(value: unknown): Record<string, unknown> {
   return typeof value === "object" && value !== null ? (value as Record<string, unknown>) : {};
@@ -32,6 +32,16 @@ function normalizeSlug(value: string) {
   }
 }
 
+function normalizeTargetCurrency(value: unknown, fallback: PaymentTargetCurrency = "USDT"): PaymentTargetCurrency {
+  const normalized = stringValue(value, fallback).toUpperCase();
+
+  if (normalized === "USDT" || normalized === "BTC" || normalized === "NGN" || normalized === "USD" || normalized === "KES") {
+    return normalized;
+  }
+
+  return fallback;
+}
+
 export function normalizePaymentLink(data: Record<string, unknown>, fallback?: Partial<PaymentLink>): PaymentLink {
   const rawTitle = stringValue(data.title || data.name, fallback?.title || "Payment Link");
   const amountValue = data.quote_amount ?? fallback?.amount;
@@ -46,7 +56,7 @@ export function normalizePaymentLink(data: Record<string, unknown>, fallback?: P
     description: stringValue(data.description, fallback?.description || ""),
     amount: Number.isFinite(parsedAmount) ? parsedAmount : undefined,
     currency: stringValue(data.quote_currency, fallback?.currency || "USD") as PaymentLink["currency"],
-    target_currency: stringValue(data.target_currency, fallback?.target_currency || "USDT"),
+    target_currency: normalizeTargetCurrency(data.target_currency, fallback?.target_currency || "USDT"),
     status: stringValue(data.status, fallback?.status || "active") as PaymentLink["status"],
     slug: normalizeSlug(rawSlug),
     hosted_url: getBushaCheckoutUrl(stringValue(data.link, fallback?.hosted_url || "")),

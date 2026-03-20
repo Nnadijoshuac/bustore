@@ -10,6 +10,10 @@ function normalizePaymentRequest(data: Record<string, unknown>): PaymentRequest 
     typeof data.pay_in === "object" && data.pay_in !== null
       ? (data.pay_in as Record<string, unknown>)
       : undefined;
+  const recipientDetails =
+    payIn && typeof payIn.recipient_details === "object" && payIn.recipient_details !== null
+      ? (payIn.recipient_details as Record<string, unknown>)
+      : undefined;
 
   return {
     id: String(data.id),
@@ -31,6 +35,12 @@ function normalizePaymentRequest(data: Record<string, unknown>): PaymentRequest 
           type: String(payIn.type ?? ""),
           address: payIn.address ? String(payIn.address) : undefined,
           network: payIn.network ? String(payIn.network) : undefined,
+          memo: payIn.memo ? String(payIn.memo) : undefined,
+          account_name: recipientDetails?.account_name ? String(recipientDetails.account_name) : undefined,
+          bank_name: recipientDetails?.bank_name ? String(recipientDetails.bank_name) : undefined,
+          account_number: recipientDetails?.account_number ? String(recipientDetails.account_number) : undefined,
+          provider: recipientDetails?.provider ? String(recipientDetails.provider) : undefined,
+          phone_number: recipientDetails?.phone_number ? String(recipientDetails.phone_number) : undefined,
           expires_at: payIn.expires_at ? String(payIn.expires_at) : undefined,
         }
       : undefined,
@@ -65,6 +75,28 @@ function getDefaultNetwork(targetCurrency: string) {
       return "ETH";
     default:
       return targetCurrency.toUpperCase();
+  }
+}
+
+function getPayInConfig(targetCurrency: string) {
+  switch (targetCurrency.toUpperCase()) {
+    case "USDT":
+    case "BTC":
+      return {
+        type: "address",
+        network: getDefaultNetwork(targetCurrency),
+      };
+    case "NGN":
+    case "USD":
+    case "KES":
+      return {
+        type: "temporary_bank_account",
+      };
+    default:
+      return {
+        type: "address",
+        network: getDefaultNetwork(targetCurrency),
+      };
   }
 }
 
@@ -103,10 +135,7 @@ export async function POST(request: Request) {
         quote_currency: body.quote_currency,
         source_currency: body.target_currency,
         target_currency: body.target_currency,
-        pay_in: {
-          type: "address",
-          network: getDefaultNetwork(body.target_currency),
-        },
+        pay_in: getPayInConfig(body.target_currency),
         reference: `${body.payment_link_slug}-${Date.now()}`,
       }),
       cache: "no-store",

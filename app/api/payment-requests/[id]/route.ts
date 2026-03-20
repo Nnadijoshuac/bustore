@@ -10,6 +10,10 @@ function normalizePaymentRequest(data: Record<string, unknown>): PaymentRequest 
     typeof data.pay_in === "object" && data.pay_in !== null
       ? (data.pay_in as Record<string, unknown>)
       : undefined;
+  const recipientDetails =
+    payIn && typeof payIn.recipient_details === "object" && payIn.recipient_details !== null
+      ? (payIn.recipient_details as Record<string, unknown>)
+      : undefined;
   const timeline =
     typeof data.timeline === "object" && data.timeline !== null
       ? (data.timeline as Record<string, unknown>)
@@ -35,6 +39,12 @@ function normalizePaymentRequest(data: Record<string, unknown>): PaymentRequest 
           type: String(payIn.type ?? ""),
           address: payIn.address ? String(payIn.address) : undefined,
           network: payIn.network ? String(payIn.network) : undefined,
+          memo: payIn.memo ? String(payIn.memo) : undefined,
+          account_name: recipientDetails?.account_name ? String(recipientDetails.account_name) : undefined,
+          bank_name: recipientDetails?.bank_name ? String(recipientDetails.bank_name) : undefined,
+          account_number: recipientDetails?.account_number ? String(recipientDetails.account_number) : undefined,
+          provider: recipientDetails?.provider ? String(recipientDetails.provider) : undefined,
+          phone_number: recipientDetails?.phone_number ? String(recipientDetails.phone_number) : undefined,
           expires_at: payIn.expires_at ? String(payIn.expires_at) : undefined,
         }
       : undefined,

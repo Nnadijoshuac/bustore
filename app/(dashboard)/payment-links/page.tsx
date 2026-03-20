@@ -11,15 +11,17 @@ import { useToast } from "@/components/ui/toaster";
 import { createPaymentLinkSchema } from "@/lib/validations";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useWatch } from "react-hook-form";
-import { Plus, Link2, Copy, ExternalLink, X } from "lucide-react";
+import { Plus, Link2, Copy, ExternalLink, QrCode, X } from "lucide-react";
 import type { CreatePaymentLinkInput } from "@/lib/validations";
 import { Currency, PaymentLink } from "@/types";
+import QRCode from "qrcode";
 
 const CURRENCIES: Currency[] = ["USD", "EUR", "GBP", "NGN", "GHS", "KES", "ZAR"];
 const LOCAL_STORAGE_PAYMENT_LINKS_KEY = "bushapay_payment_links";
 
 export default function PaymentLinksPage() {
   const [showModal, setShowModal] = useState(false);
+  const [activeQrLink, setActiveQrLink] = useState<PaymentLink | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -37,11 +39,24 @@ export default function PaymentLinksPage() {
     formState: { errors },
   } = useForm<CreatePaymentLinkInput>({
     resolver: zodResolver(createPaymentLinkSchema),
-    defaultValues: { currency: "USD", target_currency: "USDT", one_time: false, allow_customer_amount: false },
+    defaultValues: { currency: "USD", one_time: false, allow_customer_amount: false },
   });
   const allowCustomerAmount = useWatch({
     control,
     name: "allow_customer_amount",
+  });
+  const qrLinkUrl = activeQrLink && typeof window !== "undefined"
+    ? `${window.location.origin}/pay/${activeQrLink.slug}`
+    : "";
+
+  const { data: qrCodeDataUrl = "" } = useQuery({
+    queryKey: ["payment-link-qr", qrLinkUrl],
+    queryFn: () =>
+      QRCode.toDataURL(qrLinkUrl, {
+        margin: 1,
+        width: 280,
+      }),
+    enabled: Boolean(qrLinkUrl),
   });
 
   useEffect(() => {
@@ -154,6 +169,12 @@ export default function PaymentLinksPage() {
                   >
                     <Copy className="w-3.5 h-3.5" />
                   </button>
+                  <button
+                    onClick={() => setActiveQrLink(link)}
+                    className="p-1.5 hover:bg-card rounded transition-colors text-muted-foreground hover:text-foreground"
+                  >
+                    <QrCode className="w-3.5 h-3.5" />
+                  </button>
                   <a
                     href={`/pay/${link.slug}`}
                     target="_blank"
@@ -216,11 +237,10 @@ export default function PaymentLinksPage() {
               </div>
 
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <div>
-                  <label className="text-sm font-medium block mb-1.5">Target Currency</label>
-                  <input {...register("target_currency")} className="input-base" />
+                <div className="rounded-xl border border-dashed border-border bg-secondary/40 px-3 py-3 text-sm text-muted-foreground sm:col-span-2">
+                  The payer will choose how to pay at checkout, for example USDT, BTC, NGN, USD, or KES.
                 </div>
-                <label className="flex items-center gap-2 text-sm sm:pt-7">
+                <label className="flex items-center gap-2 text-sm">
                   <input type="checkbox" {...register("one_time")} className="accent-primary" />
                   <span>One-time link</span>
                 </label>
@@ -258,6 +278,59 @@ export default function PaymentLinksPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {activeQrLink && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setActiveQrLink(null)} />
+          <div className="relative w-full max-w-sm rounded-3xl bg-card p-6 shadow-xl">
+            <div className="mb-5 flex items-center justify-between">
+              <div>
+                <h2 className="font-display text-xl font-bold">Scan To Pay</h2>
+                <p className="mt-1 text-sm text-muted-foreground">{activeQrLink.title}</p>
+              </div>
+              <button onClick={() => setActiveQrLink(null)} className="p-1.5 hover:bg-secondary rounded-lg">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="rounded-2xl border border-border bg-white p-4">
+              {qrCodeDataUrl ? (
+                <img src={qrCodeDataUrl} alt="Payment link QR code" className="mx-auto h-64 w-64" />
+              ) : (
+                <div className="flex h-64 items-center justify-center text-sm text-muted-foreground">Generating QR…</div>
+              )}
+            </div>
+
+            <div className="mt-4 rounded-2xl bg-secondary p-4">
+              <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Payment Code</p>
+              <p className="mt-2 font-mono text-sm font-medium text-busha-slate">{activeQrLink.slug}</p>
+              <p className="mt-2 text-xs text-muted-foreground">
+                Share this QR code or short payment code so a client can open the checkout quickly.
+              </p>
+            </div>
+
+            <div className="mt-4 flex gap-3">
+              <button
+                type="button"
+                onClick={() => copyLink(activeQrLink)}
+                className="btn-secondary flex-1 justify-center"
+              >
+                <Copy className="h-4 w-4" />
+                Copy Link
+              </button>
+              <a
+                href={`/pay/${activeQrLink.slug}`}
+                target="_blank"
+                rel="noreferrer"
+                className="btn-primary flex-1 justify-center"
+              >
+                <ExternalLink className="h-4 w-4" />
+                Open
+              </a>
+            </div>
           </div>
         </div>
       )}

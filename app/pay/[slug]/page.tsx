@@ -11,6 +11,13 @@ import { formatCurrency, formatDate } from "@/lib/utils";
 import { CreditCard, Lock, Globe, Copy, CheckCircle2, Clock3 } from "lucide-react";
 
 const LOCAL_STORAGE_PAYMENT_LINKS_KEY = "bushapay_payment_links";
+const PAYMENT_METHOD_OPTIONS = [
+  { value: "USDT", label: "USDT", description: "Stablecoin payment" },
+  { value: "BTC", label: "BTC", description: "Bitcoin payment" },
+  { value: "NGN", label: "NGN", description: "Naira collection" },
+  { value: "USD", label: "USD", description: "Dollar collection" },
+  { value: "KES", label: "KES", description: "Kenyan shilling collection" },
+] as const;
 
 function getStoredPaymentLink(slug: string) {
   if (typeof window === "undefined") {
@@ -31,6 +38,7 @@ export default function PublicPaymentPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [copied, setCopied] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<(typeof PAYMENT_METHOD_OPTIONS)[number]["value"]>("USDT");
 
   const { data: link, error, isLoading } = useQuery({
     queryKey: ["payment-link", slugValue],
@@ -62,7 +70,7 @@ export default function PublicPaymentPage() {
         payment_link_slug: link!.slug,
         amount: paymentAmount,
         quote_currency: link!.currency,
-        target_currency: link!.target_currency || "USDT",
+        target_currency: paymentMethod,
         email,
         name,
       }),
@@ -86,6 +94,12 @@ export default function PublicPaymentPage() {
       return request.status === "pending" ? 5000 : false;
     },
   });
+
+  const isCryptoPayment = paymentRequest?.pay_in?.type === "address";
+  const payInLabel = isCryptoPayment ? "Deposit Address" : "Account Number";
+  const payInValue = isCryptoPayment
+    ? paymentRequest?.pay_in?.address
+    : paymentRequest?.pay_in?.account_number;
 
   const qrPayload = paymentRequest?.pay_in?.address
     ? `${paymentRequest.pay_in.address}${paymentRequest.pay_in.network ? `?network=${paymentRequest.pay_in.network}` : ""}${
@@ -134,11 +148,13 @@ export default function PublicPaymentPage() {
   };
 
   const copyAddress = async (request: PaymentRequest) => {
-    if (!request.pay_in?.address) {
+    const value = request.pay_in?.type === "address" ? request.pay_in.address : request.pay_in?.account_number;
+
+    if (!value) {
       return;
     }
 
-    await navigator.clipboard.writeText(request.pay_in.address);
+    await navigator.clipboard.writeText(value);
     setCopied(true);
     window.setTimeout(() => setCopied(false), 1500);
   };
@@ -170,6 +186,11 @@ export default function PublicPaymentPage() {
                 <span className="font-display text-3xl font-bold sm:text-4xl">{link.amount.toLocaleString()}</span>
               </div>
             )}
+
+            <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1.5 text-xs text-white/75">
+              Payment code
+              <span className="font-mono text-white">{link.slug}</span>
+            </div>
           </div>
 
           {!paymentRequest ? (
@@ -208,10 +229,35 @@ export default function PublicPaymentPage() {
                 <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@email.com" className="input-base" />
               </div>
 
+              <div>
+                <label className="text-sm font-medium block mb-2">How would you like to pay?</label>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  {PAYMENT_METHOD_OPTIONS.map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => setPaymentMethod(option.value)}
+                      className={`rounded-2xl border px-4 py-3 text-left transition-colors ${
+                        paymentMethod === option.value
+                          ? "border-primary bg-primary/5 shadow-sm"
+                          : "border-border bg-card hover:border-primary/40"
+                      }`}
+                    >
+                      <p className="font-medium text-busha-slate">{option.label}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">{option.description}</p>
+                    </button>
+                  ))}
+                </div>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Choose the rail that is easiest for you. Fluent will generate the matching Busha payment instructions.
+                </p>
+              </div>
+
               <div className="p-3 bg-secondary rounded-xl flex items-center gap-2">
                 <Globe className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                 <p className="text-xs text-muted-foreground">
-                  Busha will generate a payment request and show the deposit address for this invoice.
+                  Busha will generate live payment instructions for this invoice, whether that is a wallet address or
+                  bank collection details.
                 </p>
               </div>
 
@@ -270,11 +316,11 @@ export default function PublicPaymentPage() {
                 <p className="text-sm text-slate-800">
                   {paymentRequest.status === "completed"
                     ? "Payment confirmed by Busha."
-                    : `Send exactly ${paymentRequest.source_amount} ${paymentRequest.source_currency} to the address below.`}
+                    : `Send exactly ${paymentRequest.source_amount} ${paymentRequest.source_currency} using the instructions below.`}
                 </p>
               </div>
 
-              {qrCodeUrl && (
+              {isCryptoPayment && qrCodeUrl && (
                 <div className="flex justify-center rounded-2xl border border-border bg-white p-4">
                   <Image
                     src={qrCodeUrl}
@@ -289,19 +335,46 @@ export default function PublicPaymentPage() {
 
               <div>
                 <p className="text-xs text-muted-foreground mb-1">Network</p>
-                <p className="font-semibold">{paymentRequest.pay_in?.network || paymentRequest.target_currency}</p>
+                <p className="font-semibold">
+                  {paymentRequest.pay_in?.network ||
+                    paymentRequest.pay_in?.provider ||
+                    paymentRequest.target_currency}
+                </p>
               </div>
 
               <div>
-                <p className="text-xs text-muted-foreground mb-1">Deposit Address</p>
+                <p className="text-xs text-muted-foreground mb-1">{payInLabel}</p>
                 <div className="rounded-xl bg-secondary p-3 font-mono text-xs break-all">
-                  {paymentRequest.pay_in?.address}
+                  {payInValue || "Busha will provide this detail shortly."}
                 </div>
               </div>
 
+              {!isCryptoPayment && (
+                <div className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
+                  {paymentRequest.pay_in?.bank_name ? (
+                    <div className="rounded-xl bg-secondary p-3">
+                      <p className="text-xs text-muted-foreground mb-1">Bank</p>
+                      <p className="font-semibold">{paymentRequest.pay_in.bank_name}</p>
+                    </div>
+                  ) : null}
+                  {paymentRequest.pay_in?.account_name ? (
+                    <div className="rounded-xl bg-secondary p-3">
+                      <p className="text-xs text-muted-foreground mb-1">Account Name</p>
+                      <p className="font-semibold">{paymentRequest.pay_in.account_name}</p>
+                    </div>
+                  ) : null}
+                  {paymentRequest.pay_in?.phone_number ? (
+                    <div className="rounded-xl bg-secondary p-3">
+                      <p className="text-xs text-muted-foreground mb-1">Phone Number</p>
+                      <p className="font-semibold">{paymentRequest.pay_in.phone_number}</p>
+                    </div>
+                  ) : null}
+                </div>
+              )}
+
               <button onClick={() => copyAddress(paymentRequest)} className="btn-secondary w-full justify-center">
                 <Copy className="w-4 h-4" />
-                {copied ? "Copied" : "Copy Address"}
+                {copied ? "Copied" : `Copy ${isCryptoPayment ? "Address" : "Account"}`}
               </button>
 
               <div className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">

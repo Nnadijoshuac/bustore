@@ -26,7 +26,7 @@ export const createPaymentLinkSchema = z.object({
   description: z.string().min(3, "Description must be at least 3 characters").max(300).optional().or(z.literal("")),
   amount: optionalPositiveNumber,
   currency: z.enum(["USD", "EUR", "GBP", "NGN", "GHS", "KES", "ZAR"]),
-  target_currency: z.string().min(2).max(10).default("USDT"),
+  target_currency: z.enum(["USDT", "BTC", "NGN", "USD", "KES"]).default("USDT"),
   one_time: z.boolean().default(false),
   allow_customer_amount: z.boolean().default(false),
   min_amount: optionalPositiveNumber,
