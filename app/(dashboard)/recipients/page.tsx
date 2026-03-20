@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Building2, CheckCircle2, Plus, Users, X } from "lucide-react";
 import { createRecipient, getRecipientRequirements, getRecipients } from "@/lib/api/service";
 import { Topbar } from "@/components/shared/topbar";
 import { formatDate } from "@/lib/utils";
-import { Plus, Users, CheckCircle2, Building2, X } from "lucide-react";
 import type { CreateRecipientInput, Recipient, RecipientRequirement } from "@/types";
 import { useToast } from "@/components/ui/toaster";
 
@@ -117,27 +117,28 @@ export default function RecipientsPage() {
         title="Recipients"
         description="Create settlement recipients from Busha's live field requirements"
         actions={
-          <button onClick={() => setShowModal(true)} className="btn-primary">
-            <Plus className="w-4 h-4" />
+          <button onClick={() => setShowModal(true)} className="btn-primary w-full justify-center sm:w-auto">
+            <Plus className="h-4 w-4" />
             Add Recipient
           </button>
         }
       />
-      <div className="p-6">
+
+      <div className="p-4 sm:p-6">
         {isLoading ? (
           <div className="space-y-3">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="card-glass p-4 animate-pulse">
-                <div className="h-4 bg-secondary rounded w-1/3 mb-2" />
-                <div className="h-3 bg-secondary rounded w-1/2" />
+            {Array.from({ length: 3 }).map((_, index) => (
+              <div key={index} className="card-glass animate-pulse p-4">
+                <div className="mb-2 h-4 w-1/3 rounded bg-secondary" />
+                <div className="h-3 w-1/2 rounded bg-secondary" />
               </div>
             ))}
           </div>
         ) : recipients.length === 0 ? (
           <div className="card-glass p-12 text-center">
-            <Users className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
-            <p className="font-semibold mb-1">No recipients yet</p>
-            <p className="text-sm text-muted-foreground mb-4">
+            <Users className="mx-auto mb-3 h-10 w-10 text-muted-foreground" />
+            <p className="mb-1 font-semibold">No recipients yet</p>
+            <p className="mb-4 text-sm text-muted-foreground">
               Pull the required fields from Busha, then create a payout recipient.
             </p>
             <button onClick={() => setShowModal(true)} className="btn-primary mx-auto">
@@ -147,25 +148,27 @@ export default function RecipientsPage() {
         ) : (
           <div className="space-y-3">
             {recipients.map((recipient) => (
-              <div key={recipient.id} className="card-glass p-4 flex items-center gap-4">
-                <div className="w-11 h-11 rounded-xl bg-secondary flex items-center justify-center flex-shrink-0">
-                  <Building2 className="w-5 h-5 text-muted-foreground" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="font-semibold text-sm">{recipient.name}</p>
-                    {recipient.is_verified && (
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />
-                    )}
+              <div key={recipient.id} className="card-glass p-4">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                  <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-secondary">
+                    <Building2 className="h-5 w-5 text-muted-foreground" />
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    {recipient.bank_name || "Bank account"} · ****{recipient.bank_account_number.slice(-4)}
-                  </p>
-                  <p className="text-xs text-muted-foreground">{recipient.bank_account_name || recipient.name}</p>
-                </div>
-                <div className="text-right">
-                  <span className="text-xs font-medium bg-secondary px-2 py-1 rounded-md">{recipient.currency}</span>
-                  <p className="text-xs text-muted-foreground mt-1">{formatDate(recipient.created_at)}</p>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-semibold">{recipient.name}</p>
+                      {recipient.is_verified ? (
+                        <CheckCircle2 className="h-3.5 w-3.5 flex-shrink-0 text-emerald-500" />
+                      ) : null}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {recipient.bank_name || "Bank account"} · ****{recipient.bank_account_number.slice(-4)}
+                    </p>
+                    <p className="text-xs text-muted-foreground">{recipient.bank_account_name || recipient.name}</p>
+                  </div>
+                  <div className="text-left sm:text-right">
+                    <span className="rounded-md bg-secondary px-2 py-1 text-xs font-medium">{recipient.currency}</span>
+                    <p className="mt-1 text-xs text-muted-foreground">{formatDate(recipient.created_at)}</p>
+                  </div>
                 </div>
               </div>
             ))}
@@ -173,25 +176,22 @@ export default function RecipientsPage() {
         )}
       </div>
 
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {showModal ? (
+        <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-3 pt-6 sm:items-center sm:p-4">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowModal(false)} />
-          <div className="relative bg-card rounded-2xl shadow-xl w-full max-w-2xl p-6 animate-slide-in max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="font-display font-bold text-xl">Add Recipient</h2>
-              <button onClick={() => setShowModal(false)} className="p-1.5 hover:bg-secondary rounded-lg">
-                <X className="w-4 h-4" />
+          <div className="relative my-auto max-h-[calc(100vh-2rem)] w-full max-w-2xl overflow-y-auto rounded-2xl bg-card p-4 shadow-xl animate-slide-in sm:p-6">
+            <div className="mb-5 flex items-center justify-between">
+              <h2 className="font-display text-xl font-bold">Add Recipient</h2>
+              <button onClick={() => setShowModal(false)} className="rounded-lg p-1.5 hover:bg-secondary">
+                <X className="h-4 w-4" />
               </button>
             </div>
+
             <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                 <div>
-                  <label className="text-sm font-medium block mb-1.5">Country</label>
-                  <select
-                    value={countryId}
-                    onChange={(event) => updateCountry(event.target.value)}
-                    className="input-base bg-background"
-                  >
+                  <label className="mb-1.5 block text-sm font-medium">Country</label>
+                  <select value={countryId} onChange={(event) => updateCountry(event.target.value)} className="input-base bg-background">
                     {COUNTRY_OPTIONS.map((option) => (
                       <option key={option.value} value={option.value}>
                         {option.label}
@@ -200,7 +200,7 @@ export default function RecipientsPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="text-sm font-medium block mb-1.5">Currency</label>
+                  <label className="mb-1.5 block text-sm font-medium">Currency</label>
                   <input value={currencyId} readOnly className="input-base bg-secondary" />
                 </div>
               </div>
@@ -212,27 +212,27 @@ export default function RecipientsPage() {
               {isLoadingRequirements ? (
                 <div className="card-glass p-4 text-sm text-muted-foreground">Loading Busha recipient fields...</div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                   {requirements.map((requirement) => (
                     <div key={requirement.name} className={requirement.type === "textarea" ? "md:col-span-2" : ""}>
-                      <label className="text-sm font-medium block mb-1.5">
+                      <label className="mb-1.5 block text-sm font-medium">
                         {requirement.display_name}
                         {requirement.required ? " *" : ""}
                       </label>
                       {renderField(requirement)}
-                      {requirement.description && (
-                        <p className="text-xs text-muted-foreground mt-1">{requirement.description}</p>
-                      )}
+                      {requirement.description ? (
+                        <p className="mt-1 text-xs text-muted-foreground">{requirement.description}</p>
+                      ) : null}
                     </div>
                   ))}
                 </div>
               )}
 
-              <p className="text-xs text-muted-foreground bg-secondary px-3 py-2 rounded-lg">
+              <p className="rounded-lg bg-secondary px-3 py-2 text-xs text-muted-foreground">
                 These fields come from Busha for the selected country and currency.
               </p>
 
-              <div className="flex gap-3">
+              <div className="flex flex-col-reverse gap-3 sm:flex-row">
                 <button onClick={() => setShowModal(false)} className="btn-secondary flex-1">
                   Cancel
                 </button>
@@ -247,7 +247,7 @@ export default function RecipientsPage() {
             </div>
           </div>
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

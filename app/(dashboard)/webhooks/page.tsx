@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Activity, Copy, Eye, EyeOff } from "lucide-react";
 import { getWebhookDeliveries, getWebhooks } from "@/lib/api/service";
 import { Topbar } from "@/components/shared/topbar";
 import { formatDate } from "@/lib/utils";
-import { Activity, Copy, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/components/ui/toaster";
 
 const ALL_EVENTS = [
@@ -32,15 +32,16 @@ export default function WebhooksPage() {
   return (
     <div>
       <Topbar title="Webhooks" description="Use this endpoint in Busha and inspect received deliveries" />
-      <div className="p-6 space-y-6">
+
+      <div className="space-y-6 p-4 sm:p-6">
         <div className="card-glass p-5">
-          <h2 className="font-display font-bold text-base mb-4">Available Events</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+          <h2 className="mb-4 font-display text-base font-bold">Available Events</h2>
+          <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
             {ALL_EVENTS.map((event) => (
-              <div key={event.key} className="flex items-start gap-2.5 p-3 bg-secondary rounded-lg">
-                <Activity className="w-3.5 h-3.5 text-primary mt-0.5 flex-shrink-0" />
+              <div key={event.key} className="flex items-start gap-2.5 rounded-lg bg-secondary p-3">
+                <Activity className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-primary" />
                 <div>
-                  <p className="text-xs font-mono font-semibold">{event.key}</p>
+                  <p className="font-mono text-xs font-semibold">{event.key}</p>
                   <p className="text-xs text-muted-foreground">{event.desc}</p>
                 </div>
               </div>
@@ -48,51 +49,54 @@ export default function WebhooksPage() {
           </div>
         </div>
 
-        {webhook && (
-          <div className="card-glass p-5 space-y-4">
+        {webhook ? (
+          <div className="card-glass space-y-4 p-5">
             <div>
-              <h2 className="font-display font-bold text-base">Receiver Endpoint</h2>
-              <p className="text-xs text-muted-foreground mt-1">
+              <h2 className="font-display text-base font-bold">Receiver Endpoint</h2>
+              <p className="mt-1 text-xs text-muted-foreground">
                 Register this URL in your Busha dashboard or webhook settings.
               </p>
             </div>
-            <div className="flex items-center gap-2 p-2.5 bg-secondary rounded-lg">
-              <span className="font-mono text-xs flex-1 truncate">{webhook.url}</span>
-              <button onClick={() => copyValue(webhook.url, "Endpoint URL")} className="p-1 hover:bg-card rounded">
-                <Copy className="w-3.5 h-3.5" />
+
+            <div className="flex items-center gap-2 rounded-lg bg-secondary p-2.5">
+              <span className="min-w-0 flex-1 truncate font-mono text-xs">{webhook.url}</span>
+              <button onClick={() => copyValue(webhook.url, "Endpoint URL")} className="rounded p-1 hover:bg-card">
+                <Copy className="h-3.5 w-3.5" />
               </button>
             </div>
-            <div className="flex items-center gap-2 p-2.5 bg-secondary rounded-lg">
+
+            <div className="flex items-center gap-2 rounded-lg bg-secondary p-2.5">
               <span className="text-xs text-muted-foreground">Signing secret:</span>
-              <span className="font-mono text-xs flex-1 truncate">
-                {showSecret ? webhook.secret : "••••••••••••••••"}
+              <span className="min-w-0 flex-1 truncate font-mono text-xs">
+                {showSecret ? webhook.secret : "****************"}
               </span>
-              <button onClick={() => setShowSecret((current) => !current)} className="p-1 hover:bg-card rounded">
-                {showSecret ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+              <button onClick={() => setShowSecret((current) => !current)} className="rounded p-1 hover:bg-card">
+                {showSecret ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
               </button>
             </div>
+
             <p className="text-xs text-muted-foreground">
               Status: {webhook.is_active ? "signing secret configured" : "signing secret missing in env"}
             </p>
           </div>
-        )}
+        ) : null}
 
         <div>
-          <h2 className="font-display font-bold text-base mb-3">Recent Deliveries</h2>
+          <h2 className="mb-3 font-display text-base font-bold">Recent Deliveries</h2>
           {deliveries.length === 0 ? (
             <div className="card-glass p-5 text-sm text-muted-foreground">
               No webhook deliveries recorded yet. Send a test event from Busha after registering the endpoint.
             </div>
           ) : (
             deliveries.map((delivery) => (
-              <div key={delivery.id} className="card-glass p-4 mb-3">
-                <div className="flex items-start justify-between gap-3 mb-2">
+              <div key={delivery.id} className="card-glass mb-3 p-4">
+                <div className="mb-2 flex items-start justify-between gap-3">
                   <div>
                     <p className="font-mono text-sm font-semibold">{delivery.event}</p>
                     <p className="text-xs text-muted-foreground">{formatDate(delivery.received_at)}</p>
                   </div>
                 </div>
-                <pre className="text-xs bg-secondary rounded-lg p-3 overflow-x-auto whitespace-pre-wrap">
+                <pre className="overflow-x-auto whitespace-pre-wrap rounded-lg bg-secondary p-3 text-xs">
                   {JSON.stringify(delivery.payload, null, 2)}
                 </pre>
               </div>

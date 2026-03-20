@@ -146,7 +146,7 @@ export default function CustomersPage() {
           </button>
         }
       />
-      <div className="p-6">
+      <div className="p-4 sm:p-6">
         {isLoading ? (
           <div className="space-y-3">
             {Array.from({ length: 3 }).map((_, index) => (
@@ -170,7 +170,8 @@ export default function CustomersPage() {
         ) : (
           <div className="space-y-3">
             {customers.map((customer) => (
-              <div key={customer.id} className="card-glass p-4 flex items-center gap-4">
+              <div key={customer.id} className="card-glass p-4">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
                 <div className="w-11 h-11 rounded-xl bg-secondary flex items-center justify-center flex-shrink-0">
                   <UserRound className="w-5 h-5 text-muted-foreground" />
                 </div>
@@ -186,7 +187,7 @@ export default function CustomersPage() {
                   <p className="text-xs text-muted-foreground">{customer.email}</p>
                   <p className="text-xs text-muted-foreground">{customer.phone}</p>
                 </div>
-                <div className="text-right">
+                <div className="text-left sm:text-right">
                   <span className="text-xs font-medium bg-secondary px-2 py-1 rounded-md capitalize">
                     {customer.status.replace("_", " ")}
                   </span>
@@ -202,6 +203,7 @@ export default function CustomersPage() {
                     </button>
                   )}
                 </div>
+                </div>
               </div>
             ))}
           </div>
@@ -209,9 +211,9 @@ export default function CustomersPage() {
       </div>
 
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-3 pt-6 sm:items-center sm:p-4">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowModal(false)} />
-          <div className="relative bg-card rounded-2xl shadow-xl w-full max-w-2xl p-6 animate-slide-in max-h-[90vh] overflow-y-auto">
+          <div className="relative my-auto max-h-[calc(100vh-2rem)] w-full max-w-2xl overflow-y-auto rounded-2xl bg-card p-4 shadow-xl animate-slide-in sm:p-6">
             <div className="flex items-center justify-between mb-5">
               <h2 className="font-display font-bold text-xl">Create Individual Customer</h2>
               <button onClick={() => setShowModal(false)} className="p-1.5 hover:bg-secondary rounded-lg">
@@ -320,7 +322,7 @@ export default function CustomersPage() {
                 <span>I confirm the customer has accepted terms and conditions.</span>
               </label>
 
-              <div className="flex gap-3">
+              <div className="flex flex-col-reverse gap-3 sm:flex-row">
                 <button type="button" onClick={() => setShowModal(false)} className="btn-secondary flex-1">
                   Cancel
                 </button>
