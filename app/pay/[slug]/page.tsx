@@ -8,7 +8,7 @@ import QRCode from "qrcode";
 import type { PaymentLink, PaymentRequest } from "@/types";
 import { createPaymentRequest, getPaymentRequest } from "@/lib/api/service";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import { Zap, CreditCard, Lock, Globe, Copy, CheckCircle2, Clock3 } from "lucide-react";
+import { CreditCard, Lock, Globe, Copy, CheckCircle2, Clock3 } from "lucide-react";
 
 const LOCAL_STORAGE_PAYMENT_LINKS_KEY = "bushapay_payment_links";
 
@@ -147,9 +147,15 @@ export default function PublicPaymentPage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/30 px-3 py-6 sm:p-4">
       <div className="mx-auto flex w-full max-w-lg flex-col justify-center">
         <div className="mb-5 flex items-center justify-center gap-2 sm:mb-6">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary sm:h-8 sm:w-8">
-            <Zap className="h-4 w-4 text-white" />
-          </div>
+          <Image
+            src="/logo_fluent.png"
+            alt="Fluent logo"
+            width={108}
+            height={72}
+            priority
+            sizes="108px"
+            className="h-9 w-auto object-contain"
+          />
           <span className="font-display text-lg font-bold sm:text-xl">Fluent</span>
         </div>
 

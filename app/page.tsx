@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -8,7 +9,6 @@ import {
   Link2,
   ShieldCheck,
   Wallet,
-  Zap,
 } from "lucide-react";
 
 const features = [
@@ -46,9 +46,15 @@ export default function HomePage() {
         <header className="relative z-10 rounded-[1.75rem] border border-white/70 bg-white/80 p-3 shadow-sm backdrop-blur sm:p-4">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <Link href="/" className="flex min-w-0 items-center gap-3">
-              <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl bg-busha-slate text-white shadow-lg shadow-primary/20">
-                <Zap className="h-5 w-5" />
-              </span>
+              <Image
+                src="/logo_fluent.png"
+                alt="Fluent logo"
+                width={168}
+                height={112}
+                priority
+                sizes="(max-width: 640px) 140px, 168px"
+                className="h-12 w-auto flex-shrink-0 object-contain sm:h-14"
+              />
               <div className="min-w-0">
                 <p className="font-display text-lg font-bold tracking-tight sm:text-xl">Fluent</p>
                 <p className="text-[11px] leading-5 text-muted-foreground sm:text-xs">

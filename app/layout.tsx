@@ -10,6 +10,11 @@ export const metadata: Metadata = {
   description:
     "Receive international payments, manage your balance, and settle funds locally. Built for African freelancers and businesses.",
   keywords: ["payments", "business", "freelance", "africa", "global payments"],
+  icons: {
+    icon: "/logo_fluent.png",
+    shortcut: "/logo_fluent.png",
+    apple: "/logo_fluent.png",
+  },
 };
 
 export default function RootLayout({

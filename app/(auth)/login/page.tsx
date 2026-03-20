@@ -1,9 +1,10 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, LockKeyhole, Mail, Zap } from "lucide-react";
+import { ArrowRight, LockKeyhole, Mail } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -19,9 +20,15 @@ export default function LoginPage() {
   return (
     <div className="w-full max-w-md rounded-[2rem] border border-white/70 bg-white/90 p-6 shadow-2xl shadow-slate-200/70 backdrop-blur sm:p-8">
       <div className="mb-8 flex items-center gap-3">
-        <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-busha-slate text-white">
-          <Zap className="h-5 w-5" />
-        </span>
+        <Image
+          src="/logo_fluent.png"
+          alt="Fluent logo"
+          width={150}
+          height={100}
+          priority
+          sizes="150px"
+          className="h-11 w-auto object-contain"
+        />
         <div>
           <p className="font-display text-xl font-bold">Fluent</p>
           <p className="text-xs text-muted-foreground">Demo login</p>

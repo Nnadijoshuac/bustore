@@ -1,5 +1,6 @@
+import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, CheckCircle2, Globe2, Zap } from "lucide-react";
+import { ArrowRight, CheckCircle2, Globe2 } from "lucide-react";
 
 const authHighlights = [
   "Create Busha-backed payment links in seconds",
@@ -14,9 +15,15 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         <section className="hidden flex-col justify-between rounded-[2rem] border border-white/10 bg-busha-slate/90 p-8 text-white shadow-2xl shadow-slate-950/20 backdrop-blur lg:flex">
           <div>
             <Link href="/" className="flex items-center gap-3">
-              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary text-white">
-                <Zap className="h-5 w-5" />
-              </span>
+              <Image
+                src="/logo_fluent.png"
+                alt="Fluent logo"
+                width={168}
+                height={112}
+                priority
+                sizes="168px"
+                className="h-12 w-auto object-contain"
+              />
               <div>
                 <p className="font-display text-2xl font-bold">Fluent</p>
                 <p className="text-sm text-white/55">Hackathon submission build</p>

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -15,7 +16,6 @@ import {
   Users,
   Webhook,
   X,
-  Zap,
 } from "lucide-react";
 import { useAppStore } from "@/lib/store/app.store";
 import { DEMO_USER } from "@/lib/api/demo-data";
@@ -73,9 +73,15 @@ export function Sidebar() {
             showExpanded ? "gap-3" : "justify-center"
           )}
         >
-          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary text-white">
-            <Zap className="h-4 w-4" />
-          </div>
+          <Image
+            src="/logo_fluent.png"
+            alt="Fluent logo"
+            width={108}
+            height={72}
+            priority
+            sizes="108px"
+            className="h-9 w-auto flex-shrink-0 object-contain"
+          />
           {showExpanded ? (
             <>
               <div className="min-w-0 flex-1">
