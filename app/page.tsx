@@ -39,43 +39,47 @@ const steps = [
 export default function HomePage() {
   return (
     <main className="min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top_left,_rgba(0,200,150,0.18),_transparent_28%),linear-gradient(180deg,_#f8fbfd_0%,_#eef5f3_52%,_#f8fbfd_100%)]">
-      <section className="relative mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 py-6 sm:px-6 lg:px-8">
+      <section className="relative mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
         <div className="absolute left-[-6rem] top-20 h-48 w-48 rounded-full bg-primary/10 blur-3xl" />
         <div className="absolute right-[-4rem] top-40 h-56 w-56 rounded-full bg-sky-200/40 blur-3xl" />
 
-        <header className="relative z-10 flex items-center justify-between py-4">
-          <Link href="/" className="flex items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-busha-slate text-white shadow-lg shadow-primary/20">
-              <Zap className="h-5 w-5" />
-            </span>
-            <div>
-              <p className="font-display text-xl font-bold tracking-tight">Fluent</p>
-              <p className="text-xs text-muted-foreground">Global payments for African businesses</p>
-            </div>
-          </Link>
+        <header className="relative z-10 rounded-[1.75rem] border border-white/70 bg-white/80 p-3 shadow-sm backdrop-blur sm:p-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <Link href="/" className="flex min-w-0 items-center gap-3">
+              <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl bg-busha-slate text-white shadow-lg shadow-primary/20">
+                <Zap className="h-5 w-5" />
+              </span>
+              <div className="min-w-0">
+                <p className="font-display text-lg font-bold tracking-tight sm:text-xl">Fluent</p>
+                <p className="text-[11px] leading-5 text-muted-foreground sm:text-xs">
+                  Global payments for African businesses
+                </p>
+              </div>
+            </Link>
 
-          <div className="flex items-center gap-2">
-            <Link href="/login" className="btn-secondary">
-              Sign in
-            </Link>
-            <Link href="/register" className="btn-primary">
-              Open demo
-            </Link>
+            <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center">
+              <Link href="/login" className="btn-secondary justify-center px-3 py-2.5 text-sm sm:px-4">
+                Sign in
+              </Link>
+              <Link href="/register" className="btn-primary justify-center px-3 py-2.5 text-sm sm:px-4">
+                Open demo
+              </Link>
+            </div>
           </div>
         </header>
 
-        <div className="relative z-10 grid flex-1 items-center gap-12 py-12 lg:grid-cols-[1.1fr_0.9fr] lg:py-16">
+        <div className="relative z-10 grid flex-1 items-center gap-10 py-10 sm:gap-12 sm:py-12 lg:grid-cols-[1.1fr_0.9fr] lg:py-16">
           <div className="max-w-3xl">
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-white/80 px-3 py-1.5 text-xs font-medium text-busha-slate shadow-sm backdrop-blur">
+            <div className="mb-5 inline-flex max-w-full items-center gap-2 rounded-full border border-primary/20 bg-white/80 px-3 py-1.5 text-xs font-medium text-busha-slate shadow-sm backdrop-blur">
               <Globe2 className="h-3.5 w-3.5 text-primary" />
-              Busha-powered payment requests for freelancers and lean teams
+              <span className="truncate">Busha-powered payment requests for freelancers and lean teams</span>
             </div>
 
-            <h1 className="max-w-3xl font-display text-5xl font-extrabold leading-[0.95] tracking-[-0.04em] text-busha-slate sm:text-6xl lg:text-7xl">
+            <h1 className="max-w-3xl font-display text-4xl font-extrabold leading-[0.95] tracking-[-0.04em] text-busha-slate sm:text-6xl lg:text-7xl">
               Get paid globally without building your own payment stack.
             </h1>
 
-            <p className="mt-6 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
+            <p className="mt-5 max-w-2xl text-base leading-7 text-slate-600 sm:mt-6 sm:text-lg">
               Fluent turns Busha&apos;s payment links, requests, recipients, and customer flows into a clean
               operating layer for African freelancers, agencies, and digital businesses.
             </p>
