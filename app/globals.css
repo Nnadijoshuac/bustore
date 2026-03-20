@@ -1,10 +1,9 @@
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* ─── Google Fonts ─────────────────────────────── */
 @layer base {
   :root {
     --background: 220 25% 97%;
@@ -26,9 +25,9 @@
     --border: 215 20% 88%;
     --input: 215 20% 88%;
     --ring: 162 100% 39%;
-    --radius: 0.75rem;
-    --font-geist-sans: 'DM Sans', system-ui, sans-serif;
-    --font-clash: 'Syne', system-ui, sans-serif;
+    --radius: 1rem;
+    --font-geist-sans: 'Sora', system-ui, sans-serif;
+    --font-clash: 'Sora', system-ui, sans-serif;
   }
 
   .dark {
@@ -58,51 +57,62 @@
   * {
     @apply border-border;
   }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-geist-sans);
     font-feature-settings: "rlig" 1, "calt" 1;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    line-height: 1.5;
   }
-  h1, h2, h3, h4, h5, h6 {
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     font-family: var(--font-clash);
     font-weight: 700;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.03em;
   }
 }
 
-/* ─── Scrollbar ────────────────────────────────── */
 ::-webkit-scrollbar {
   width: 4px;
   height: 4px;
 }
+
 ::-webkit-scrollbar-track {
   background: transparent;
 }
+
 ::-webkit-scrollbar-thumb {
   background: hsl(var(--border));
   border-radius: 99px;
 }
 
-/* ─── Selection ────────────────────────────────── */
 ::selection {
-  background: hsl(162 100% 39% / 0.2);
+  background: hsl(162 100% 39% / 0.18);
   color: hsl(var(--foreground));
 }
 
-/* ─── Utility classes ──────────────────────────── */
 @layer components {
   .card-glass {
-    @apply bg-card border border-border rounded-xl shadow-sm;
+    @apply rounded-2xl border border-border/90 bg-card shadow-sm shadow-slate-200/60;
   }
 
   .stat-card {
-    @apply card-glass p-5 flex flex-col gap-2;
+    @apply card-glass flex flex-col gap-2 p-5;
   }
 
   .badge-status {
-    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium;
+    @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium;
   }
 
   .badge-green {
@@ -122,9 +132,7 @@
   }
 
   .sidebar-link {
-    @apply flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium
-           text-muted-foreground hover:text-foreground hover:bg-secondary
-           transition-all duration-150;
+    @apply flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-muted-foreground transition-all duration-150 hover:bg-secondary hover:text-foreground;
   }
 
   .sidebar-link-active {
@@ -132,30 +140,22 @@
   }
 
   .btn-primary {
-    @apply inline-flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground
-           text-sm font-medium rounded-lg hover:bg-busha-green-dark
-           transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors duration-150 hover:bg-busha-green-dark disabled:cursor-not-allowed disabled:opacity-50;
   }
 
   .btn-secondary {
-    @apply inline-flex items-center gap-2 px-4 py-2.5 bg-secondary text-secondary-foreground
-           text-sm font-medium rounded-lg hover:bg-muted
-           transition-colors duration-150;
+    @apply inline-flex items-center gap-2 rounded-xl bg-secondary px-4 py-2.5 text-sm font-medium text-secondary-foreground transition-colors duration-150 hover:bg-muted;
   }
 
   .input-base {
-    @apply w-full px-3 py-2.5 text-sm bg-background border border-input rounded-lg
-           placeholder:text-muted-foreground focus:outline-none focus:ring-2
-           focus:ring-ring/30 focus:border-ring transition-colors;
+    @apply w-full rounded-xl border border-input bg-background px-3 py-2.5 text-sm transition-colors placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/25;
   }
 
   .demo-banner {
-    @apply flex items-center gap-2 px-4 py-2 bg-amber-50 border-b border-amber-200
-           text-amber-800 text-sm font-medium;
+    @apply flex items-center gap-2 border-b border-amber-200 bg-amber-50 px-4 py-2 text-sm font-medium text-amber-800;
   }
 }
 
-/* ─── Shimmer loading ──────────────────────────── */
 .skeleton {
   background: linear-gradient(
     90deg,
@@ -167,7 +167,6 @@
   animation: shimmer 1.5s linear infinite;
 }
 
-/* ─── Number animate ───────────────────────────── */
 .number-animate {
   display: inline-block;
   animation: count-up 0.5s ease forwards;

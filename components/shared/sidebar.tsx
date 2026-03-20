@@ -61,7 +61,7 @@ export function Sidebar() {
 
       <aside
         className={cn(
-          "fixed left-0 top-0 z-40 flex h-screen flex-col border-r border-border bg-card transition-all duration-300 ease-in-out",
+          "fixed left-0 top-0 z-40 flex h-screen flex-col border-r border-border bg-card shadow-xl shadow-slate-200/60 transition-all duration-300 ease-in-out",
           "w-72 md:w-auto",
           mobileSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
           sidebarOpen ? "md:w-60" : "md:w-[68px]"
@@ -85,7 +85,7 @@ export function Sidebar() {
           {showExpanded ? (
             <>
               <div className="min-w-0 flex-1">
-                <span className="font-display text-lg font-bold tracking-tight">Fluent</span>
+                <span className="font-display text-base font-semibold tracking-tight text-busha-slate">Fluent</span>
                 <p className="text-xs text-muted-foreground">Busha-powered ops</p>
               </div>
               <button
@@ -107,7 +107,7 @@ export function Sidebar() {
           </div>
         ) : null}
 
-        <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 py-4">
+        <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
           {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
             const active = pathname === href || pathname.startsWith(`${href}/`);
 
