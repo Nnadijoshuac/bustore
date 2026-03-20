@@ -74,23 +74,23 @@ export default function HomePage() {
           </div>
         </header>
 
-        <div className="relative z-10 grid flex-1 items-center gap-10 py-10 sm:gap-12 sm:py-12 lg:grid-cols-[1.1fr_0.9fr] lg:py-16">
-          <div className="max-w-3xl">
+        <div className="relative z-10 flex flex-1 flex-col gap-10 py-10 sm:gap-12 sm:py-12 lg:py-16">
+          <div className="mx-auto flex w-full max-w-4xl flex-col items-center">
             <div className="mb-5 inline-flex max-w-full items-center gap-2 rounded-full border border-primary/20 bg-white/80 px-3 py-1.5 text-xs font-medium text-busha-slate shadow-sm backdrop-blur">
               <Globe2 className="h-3.5 w-3.5 text-primary" />
               <span className="truncate">Busha-powered payment requests for freelancers and lean teams</span>
             </div>
 
-            <h1 className="max-w-3xl font-display text-4xl font-extrabold leading-[0.95] tracking-[-0.04em] text-busha-slate sm:text-6xl lg:text-7xl">
+            <h1 className="max-w-4xl text-center font-display text-4xl font-extrabold leading-[0.95] tracking-[-0.04em] text-busha-slate sm:text-6xl lg:text-7xl">
               Get paid globally without building your own payment stack.
             </h1>
 
-            <p className="mt-5 max-w-2xl text-base leading-7 text-slate-600 sm:mt-6 sm:text-lg">
+            <p className="mt-5 max-w-3xl text-center text-base leading-7 text-slate-600 sm:mt-6 sm:text-lg">
               Fluent turns Busha&apos;s payment links, requests, recipients, and customer flows into a clean
               operating layer for African freelancers, agencies, and digital businesses.
             </p>
 
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <div className="mt-8 flex w-full max-w-xl flex-col gap-3 sm:flex-row sm:justify-center">
               <Link href="/register" className="btn-primary justify-center px-6 py-3 text-base">
                 Launch demo workspace
                 <ArrowRight className="h-4 w-4" />
@@ -99,8 +99,10 @@ export default function HomePage() {
                 Jump to dashboard
               </Link>
             </div>
+          </div>
 
-            <div className="mt-10 grid gap-3 sm:grid-cols-2">
+          <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-8">
+            <div className="grid w-full gap-3 sm:grid-cols-2">
               {steps.map((step) => (
                 <div key={step} className="flex items-start gap-3 rounded-2xl border border-white/70 bg-white/70 p-4 shadow-sm backdrop-blur">
                   <CheckCircle2 className="mt-0.5 h-5 w-5 flex-shrink-0 text-primary" />
@@ -108,9 +110,8 @@ export default function HomePage() {
                 </div>
               ))}
             </div>
-          </div>
 
-          <div className="relative">
+            <div className="relative mx-auto w-full max-w-2xl">
             <div className="rounded-[2rem] border border-white/80 bg-white/85 p-4 shadow-2xl shadow-slate-200/70 backdrop-blur sm:p-5">
               <div className="rounded-[1.5rem] bg-busha-slate p-5 text-white sm:p-6">
                 <div className="flex items-start justify-between gap-4">
@@ -151,6 +152,7 @@ export default function HomePage() {
                   </div>
                 ))}
               </div>
+            </div>
             </div>
           </div>
         </div>
