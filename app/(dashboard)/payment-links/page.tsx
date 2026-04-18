@@ -15,6 +15,7 @@ import { Plus, Link2, Copy, ExternalLink, QrCode, X } from "lucide-react";
 import type { CreatePaymentLinkInput } from "@/lib/validations";
 import { Currency, PaymentLink } from "@/types";
 import QRCode from "qrcode";
+import { AILinkGenerator } from "@/components/ai/ai-link-generator";
 
 const CURRENCIES: Currency[] = ["USD", "EUR", "GBP", "NGN", "GHS", "KES", "ZAR"];
 const LOCAL_STORAGE_PAYMENT_LINKS_KEY = "bushapay_payment_links";
@@ -203,6 +204,8 @@ export default function PaymentLinksPage() {
             </div>
 
             <form onSubmit={handleSubmit((d) => mutation.mutate(d))} className="space-y-4">
+              <AILinkGenerator setValue={setValue} />
+
               <div>
                 <label className="text-sm font-medium block mb-1.5">Title *</label>
                 <input {...register("title")} placeholder="e.g. Logo Design Package" className="input-base" />

@@ -1,6 +1,7 @@
 "use client";
 
 import { Sidebar } from "@/components/shared/sidebar";
+import { AICopilot } from "@/components/ai/ai-copilot";
 import { useAppStore } from "@/lib/store/app.store";
 import { cn } from "@/lib/utils";
 
@@ -18,6 +19,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       >
         {children}
       </main>
+      <AICopilot />
     </div>
   );
 }

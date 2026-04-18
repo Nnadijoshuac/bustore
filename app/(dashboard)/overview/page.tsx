@@ -26,6 +26,7 @@ import { Topbar } from "@/components/shared/topbar";
 import { StatusBadge } from "@/components/ui/badge";
 import { StatCardSkeleton } from "@/components/ui/skeleton";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { AIInsightsCard } from "@/components/ai/ai-insights-card";
 
 export default function OverviewPage() {
   const { data: stats, isLoading: statsLoading } = useQuery({
@@ -163,6 +164,8 @@ export default function OverviewPage() {
             </AreaChart>
           </ResponsiveContainer>
         </div>
+
+        <AIInsightsCard />
 
         <div className="card-glass">
           <div className="flex items-center justify-between border-b border-border p-5">
