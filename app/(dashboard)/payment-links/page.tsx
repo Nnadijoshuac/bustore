@@ -221,7 +221,7 @@ export default function PaymentLinksPage() {
                   {selectedLink ? "Payment Detail" : "New Collection Link"}
                 </h2>
                 <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mt-1.5 opacity-60">
-                  powered by ejima
+                  fluent collections
                 </p>
               </div>
               <button 
