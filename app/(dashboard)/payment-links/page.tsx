@@ -111,6 +111,10 @@ export default function PaymentLinksPage() {
     l.slug.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const onSubmit = (data: CreatePaymentLinkInput) => {
+    mutation.mutate(data);
+  };
+
   return (
     <div className="relative min-h-screen">
       <Topbar
@@ -243,8 +247,7 @@ export default function PaymentLinksPage() {
               )}
 
               <form 
-                onSubmit={handleSubmit((d) => mutation.mutate(d))} 
-                id="link-form-actual" 
+                onSubmit={handleSubmit(onSubmit)} 
                 className="space-y-6 pb-8"
               >
                 {!selectedLink && <AILinkGenerator setValue={setValue} />}
@@ -308,21 +311,20 @@ export default function PaymentLinksPage() {
                     <span className="text-[10px] font-bold text-slate-600 uppercase tracking-wider group-hover:text-slate-900 transition-colors">Client chooses amount</span>
                   </label>
                 </div>
-              </form>
-            </div>
 
-            <div className="px-6 py-5 border-t border-border/40 bg-slate-50/50 flex gap-2.5 z-10">
-                <button type="button" onClick={() => setPanelOpen(false)} className="flex-1 h-10 rounded-xl bg-white border border-border font-bold text-[10px] uppercase tracking-widest hover:bg-slate-50 transition-colors shadow-sm">
-                  Discard
-                </button>
-                <button 
-                  type="submit"
-                  form="link-form-actual"
-                  disabled={mutation.isPending}
-                  className="flex-[1.5] btn-primary justify-center h-10 text-[10px] uppercase tracking-[0.15em] shadow-lg shadow-primary/20"
-                >
-                  {mutation.isPending ? "Syncing..." : selectedLink ? "Update Link" : "Activate Link"}
-                </button>
+                <div className="pt-4 flex gap-2.5">
+                  <button type="button" onClick={() => setPanelOpen(false)} className="flex-1 h-10 rounded-xl bg-white border border-border font-bold text-[10px] uppercase tracking-widest hover:bg-slate-50 transition-colors shadow-sm">
+                    Discard
+                  </button>
+                  <button 
+                    type="submit"
+                    disabled={mutation.isPending}
+                    className="flex-[1.5] btn-primary justify-center h-10 text-[10px] uppercase tracking-[0.15em] shadow-lg shadow-primary/20"
+                  >
+                    {mutation.isPending ? "Syncing..." : selectedLink ? "Update Link" : "Activate Link"}
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         </div>
