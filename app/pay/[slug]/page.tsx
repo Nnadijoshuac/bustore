@@ -8,17 +8,7 @@ import QRCode from "qrcode";
 import type { PaymentLink, PaymentRequest } from "@/types";
 import { createPaymentRequest, getPaymentRequest } from "@/lib/api/service";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import {
-  CheckCircle2,
-  Clock3,
-  Copy,
-  CreditCard,
-  FileText,
-  Globe,
-  Lock,
-  Receipt,
-  ShieldCheck,
-} from "lucide-react";
+import { CheckCircle2, Clock3, Copy, CreditCard, Lock } from "lucide-react";
 
 const LOCAL_STORAGE_PAYMENT_LINKS_KEY = "bushapay_payment_links";
 const PAYMENT_METHOD_OPTIONS = [
@@ -65,7 +55,7 @@ function getPayInDetails(paymentRequest?: PaymentRequest) {
 
 function PageShell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(16,185,129,0.16),_transparent_24%),linear-gradient(180deg,_#f5f8fb_0%,_#edf4f1_52%,_#f9fbfc_100%)] px-3 py-6 sm:p-4">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(16,185,129,0.14),_transparent_24%),linear-gradient(180deg,_#f8fbfc_0%,_#eef3f1_52%,_#fbfcfc_100%)] px-3 py-6 sm:p-4">
       <div className="mx-auto flex w-full max-w-5xl flex-col justify-center">{children}</div>
     </div>
   );
@@ -110,21 +100,6 @@ function CenteredMessage({
   );
 }
 
-function SectionPill({
-  icon,
-  children,
-}: {
-  icon: React.ReactNode;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-primary">
-      {icon}
-      {children}
-    </div>
-  );
-}
-
 function InvoiceMetaCard({
   label,
   value,
@@ -133,9 +108,9 @@ function InvoiceMetaCard({
   value: string;
 }) {
   return (
-    <div className="rounded-2xl border border-border/50 bg-slate-50 p-4">
-      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">{label}</p>
-      <p className="mt-2 text-sm font-semibold text-slate-900">{value}</p>
+    <div>
+      <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">{label}</p>
+      <p className="mt-2 text-sm font-medium text-slate-900">{value}</p>
     </div>
   );
 }
@@ -149,21 +124,27 @@ function PaymentMethodGrid({
 }) {
   return (
     <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-      {PAYMENT_METHOD_OPTIONS.map((option) => (
-        <button
-          key={option.value}
-          type="button"
-          onClick={() => onSelect(option.value)}
-          className={`rounded-2xl border px-4 py-3 text-left transition-colors ${
-            selectedValue === option.value
-              ? "border-primary bg-primary/12 shadow-sm"
-              : "border-white/10 bg-white/5 hover:border-primary/40"
-          }`}
-        >
-          <p className="font-medium text-white">{option.label}</p>
-          <p className="mt-1 text-xs text-white/55">{option.description}</p>
-        </button>
-      ))}
+      {PAYMENT_METHOD_OPTIONS.map((option) => {
+        const isSelected = selectedValue === option.value;
+
+        return (
+          <button
+            key={option.value}
+            type="button"
+            onClick={() => onSelect(option.value)}
+            className={`rounded-2xl border px-4 py-3 text-left transition-all ${
+              isSelected
+                ? "border-white bg-white text-slate-950 shadow-sm"
+                : "border-white/10 bg-transparent text-white hover:border-white/30 hover:bg-white/[0.03]"
+            }`}
+          >
+            <p className={isSelected ? "font-semibold text-slate-950" : "font-semibold text-white"}>{option.label}</p>
+            <p className={isSelected ? "mt-1 text-xs text-slate-500" : "mt-1 text-xs text-white/50"}>
+              {option.description}
+            </p>
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -176,8 +157,8 @@ function ReceiptMetric({
   value: React.ReactNode;
 }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/6 p-4">
-      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/45">{label}</p>
+    <div className="border-b border-white/10 pb-4">
+      <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/45">{label}</p>
       <div className="mt-2">{value}</div>
     </div>
   );
@@ -192,7 +173,7 @@ function ReceiptInfoBlock({
 }) {
   return (
     <div>
-      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/45">{label}</p>
+      <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/45">{label}</p>
       <div className="mt-2">{value}</div>
     </div>
   );
@@ -208,7 +189,7 @@ function TimelineCard({
   description: string;
 }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/6 p-4">
+    <div className="rounded-2xl border border-white/10 bg-white/[0.05] p-4">
       <div className="flex items-center justify-between gap-3">
         <p className="text-sm font-semibold text-white">{title}</p>
         <span className="text-[10px] uppercase tracking-[0.18em] text-white/45">{status}</span>
@@ -226,68 +207,43 @@ function InvoicePanel({
   paymentAmount: string;
 }) {
   return (
-    <section className="border-b border-border/40 p-5 sm:p-8 lg:border-b-0 lg:border-r">
-      <div className="flex items-start justify-between gap-4">
+    <section className="border-b border-border/40 p-6 sm:p-8 lg:border-b-0 lg:border-r lg:p-10">
+      <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <SectionPill icon={<FileText className="h-3.5 w-3.5" />}>Invoice</SectionPill>
-          <h1 className="mt-5 break-words font-display text-3xl font-bold tracking-[-0.04em] text-busha-slate sm:text-4xl">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-400">Invoice</p>
+          <h1 className="mt-4 max-w-xl break-words font-display text-3xl font-semibold tracking-[-0.06em] text-slate-950 sm:text-4xl">
             {link.title}
           </h1>
-          <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-600">
-            {link.description || "Professional services rendered and payable through Fluent's Busha-backed collection flow."}
+          <p className="mt-3 max-w-lg text-sm leading-7 text-slate-600">
+            {link.description || "Payment for this invoice."}
           </p>
         </div>
 
-        <div className="rounded-2xl border border-border/50 bg-slate-50 px-4 py-3 text-right shadow-sm">
-          <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-muted-foreground">Invoice ID</p>
-          <p className="mt-1 font-mono text-sm font-semibold text-slate-800">{link.slug}</p>
+        <div className="text-left sm:text-right">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Invoice ID</p>
+          <p className="mt-1 font-mono text-sm font-medium text-slate-800">{link.slug}</p>
         </div>
       </div>
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-3">
-        <InvoiceMetaCard label="Issued Through" value="Fluent Collections" />
-        <InvoiceMetaCard label="Collection Rail" value="Busha Payment Request" />
+      <div className="mt-10 grid gap-8 border-t border-border/50 pt-6 sm:grid-cols-2">
+        <InvoiceMetaCard label="Powered By" value="Fluent x Busha" />
         <InvoiceMetaCard label="Created" value={formatDate(link.created_at)} />
       </div>
 
-      <div className="mt-8 overflow-hidden rounded-[1.5rem] border border-border/50">
-        <div className="grid grid-cols-[minmax(0,1fr)_auto] border-b border-border/50 bg-slate-100/70 px-4 py-3 text-[10px] font-bold uppercase tracking-[0.22em] text-muted-foreground sm:px-5">
-          <span>Line Item</span>
-          <span>Amount</span>
-        </div>
-
-        <div className="grid grid-cols-[minmax(0,1fr)_auto] px-4 py-5 sm:px-5">
+      <div className="mt-12 border-t border-border/50 pt-8">
+        <div className="grid gap-8 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
           <div className="pr-4">
-            <p className="text-sm font-semibold text-slate-900">{link.title}</p>
-            <p className="mt-1 text-sm leading-6 text-slate-600">
-              {link.description || "One-time invoice issued for client settlement through Fluent."}
+            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Line Item</p>
+            <p className="mt-3 text-base font-semibold text-slate-950">{link.title}</p>
+            <p className="mt-2 max-w-lg text-sm leading-7 text-slate-600">{link.description || "Invoice payment."}</p>
+          </div>
+          <div className="text-left sm:text-right">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Amount Due</p>
+            <p className="mt-3 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">{link.currency}</p>
+            <p className="mt-1 font-display text-4xl font-semibold tracking-[-0.05em] text-slate-950">
+              {formatInvoiceAmount(link, paymentAmount)}
             </p>
           </div>
-          <div className="text-right">
-            <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">{link.currency}</p>
-            <p className="mt-1 font-display text-2xl font-bold text-slate-900">{formatInvoiceAmount(link, paymentAmount)}</p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-[minmax(0,1fr)_auto] border-t border-border/50 bg-slate-50 px-4 py-4 sm:px-5">
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Amount Due</p>
-            <p className="mt-1 text-sm text-slate-600">Inclusive of live payment instructions generated at checkout.</p>
-          </div>
-          <div className="text-right">
-            <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">{link.currency}</p>
-            <p className="mt-1 font-display text-3xl font-bold text-busha-slate">{formatInvoiceAmount(link, paymentAmount)}</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-6 flex items-start gap-3 rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4 text-sm text-slate-700">
-        <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
-        <div>
-          <p className="font-semibold text-slate-900">Verified collection flow</p>
-          <p className="mt-1 leading-6">
-            Payment instructions are issued only when checkout begins, keeping this invoice current, secure, and reference-safe.
-          </p>
         </div>
       </div>
     </section>
@@ -297,29 +253,21 @@ function InvoicePanel({
 function CheckoutPanel({
   link,
   amount,
-  name,
-  email,
   paymentAmount,
   paymentMethod,
   isPending,
   error,
   onAmountChange,
-  onNameChange,
-  onEmailChange,
   onPaymentMethodChange,
   onSubmit,
 }: {
   link: PaymentLink;
   amount: string;
-  name: string;
-  email: string;
   paymentAmount: string;
   paymentMethod: (typeof PAYMENT_METHOD_OPTIONS)[number]["value"];
   isPending: boolean;
   error?: string;
   onAmountChange: (value: string) => void;
-  onNameChange: (value: string) => void;
-  onEmailChange: (value: string) => void;
   onPaymentMethodChange: (value: (typeof PAYMENT_METHOD_OPTIONS)[number]["value"]) => void;
   onSubmit: () => void;
 }) {
@@ -331,20 +279,15 @@ function CheckoutPanel({
         onSubmit();
       }}
     >
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-col gap-4 border-b border-white/10 pb-6 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-white/80">
-            <Receipt className="h-3.5 w-3.5 text-primary" />
-            Checkout
-          </div>
-          <h2 className="mt-4 font-display text-2xl font-bold tracking-tight">Review and pay invoice</h2>
-          <p className="mt-2 text-sm leading-6 text-white/65">
-            Choose a rail, confirm payer details, and Fluent will create a live Busha request.
-          </p>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-white/45">Checkout</p>
+          <h2 className="mt-3 font-display text-2xl font-semibold tracking-[-0.04em]">Pay invoice</h2>
+          <p className="mt-2 text-sm text-white/55">Choose a rail and generate payment details instantly.</p>
         </div>
 
-        <div className="rounded-2xl bg-white/8 px-4 py-3 text-right">
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/45">Amount Due</p>
+        <div className="text-left sm:text-right">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/45">Amount Due</p>
           <p className="mt-1 font-display text-3xl font-bold">
             {paymentAmount ? formatCurrency(parseFloat(paymentAmount), link.currency) : formatCurrency(link.amount || 0, link.currency)}
           </p>
@@ -353,7 +296,7 @@ function CheckoutPanel({
 
       {!link.amount ? (
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-white/80">Invoice Amount ({link.currency})</label>
+          <label className="mb-1.5 block text-sm font-medium text-white/80">Amount ({link.currency})</label>
           <div className="relative">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-white/45">
               {getAmountPrefix(link.currency)}
@@ -369,40 +312,9 @@ function CheckoutPanel({
         </div>
       ) : null}
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div>
-          <label className="mb-1.5 block text-sm font-medium text-white/80">Payer Name</label>
-          <input
-            value={name}
-            onChange={(event) => onNameChange(event.target.value)}
-            placeholder="John Doe"
-            className="input-base border-white/10 bg-white/10 text-white placeholder:text-white/30"
-          />
-        </div>
-        <div>
-          <label className="mb-1.5 block text-sm font-medium text-white/80">Email Address</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(event) => onEmailChange(event.target.value)}
-            placeholder="you@email.com"
-            className="input-base border-white/10 bg-white/10 text-white placeholder:text-white/30"
-          />
-        </div>
-      </div>
-
-      <div>
+      <div className="border-t border-white/10 pt-5">
         <label className="mb-2 block text-sm font-medium text-white/80">Payment Method</label>
         <PaymentMethodGrid selectedValue={paymentMethod} onSelect={onPaymentMethodChange} />
-      </div>
-
-      <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-        <div className="flex items-start gap-3">
-          <Globe className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-          <p className="text-sm leading-6 text-white/70">
-            Busha will generate current payment instructions for this invoice, whether that is a wallet address, QR code, or bank collection details.
-          </p>
-        </div>
       </div>
 
       {error ? (
@@ -413,7 +325,7 @@ function CheckoutPanel({
 
       <button
         type="submit"
-        disabled={isPending || !name || !email || !paymentAmount}
+        disabled={isPending || !paymentAmount}
         className="btn-primary w-full justify-center rounded-2xl py-3.5 text-base shadow-lg shadow-primary/20"
       >
         {isPending ? (
@@ -424,14 +336,14 @@ function CheckoutPanel({
         ) : (
           <span className="flex items-center gap-2">
             <CreditCard className="h-4 w-4" />
-            Generate Payment Instructions
+            Generate QR Code
           </span>
         )}
       </button>
 
       <div className="flex items-center justify-center gap-1.5 text-xs text-white/45">
         <Lock className="h-3 w-3" />
-        Secured by Fluent · 256-bit encryption
+        Secure checkout
       </div>
     </form>
   );
@@ -452,20 +364,17 @@ function PaymentReceiptPanel({
   const statusIsCompleted = paymentRequest.status === "completed";
 
   return (
-    <div className="space-y-5">
-      <div className="flex items-center justify-between gap-4">
+    <div className="space-y-6">
+      <div className="flex flex-col gap-4 border-b border-white/10 pb-6 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-white/80">
-            <Receipt className="h-3.5 w-3.5 text-primary" />
-            Payment Receipt
-          </div>
-          <h2 className="mt-4 font-display text-2xl font-bold tracking-tight">
-            {statusIsCompleted ? "Payment confirmed" : "Payment instructions ready"}
+          <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-white/45">Payment</p>
+          <h2 className="mt-3 font-display text-2xl font-bold tracking-tight">
+            {statusIsCompleted ? "Payment confirmed" : "Scan to pay"}
           </h2>
           <p className="mt-2 text-sm leading-6 text-white/65">
             {statusIsCompleted
               ? "Busha has confirmed this payment request."
-              : `Send exactly ${paymentRequest.source_amount} ${paymentRequest.source_currency} using the verified details below.`}
+              : `Send exactly ${paymentRequest.source_amount} ${paymentRequest.source_currency} using the details below.`}
           </p>
         </div>
 
@@ -484,7 +393,11 @@ function PaymentReceiptPanel({
       <div className="grid gap-4 sm:grid-cols-2">
         <ReceiptMetric
           label="Amount"
-          value={<p className="font-display text-3xl font-bold text-white">{paymentRequest.source_amount} {paymentRequest.source_currency}</p>}
+          value={
+            <p className="font-display text-3xl font-bold text-white">
+              {paymentRequest.source_amount} {paymentRequest.source_currency}
+            </p>
+          }
         />
         <ReceiptMetric
           label="Reference"
@@ -493,7 +406,7 @@ function PaymentReceiptPanel({
       </div>
 
       {isCryptoPayment && qrCodeUrl ? (
-        <div className="flex justify-center rounded-[1.75rem] border border-white/10 bg-white p-5">
+        <div className="flex justify-center border-y border-white/10 py-6">
           <Image
             src={qrCodeUrl}
             alt="Payment address QR code"
@@ -505,10 +418,10 @@ function PaymentReceiptPanel({
         </div>
       ) : null}
 
-      <div className="rounded-[1.75rem] border border-white/10 bg-white/6 p-5">
+      <div className="border-t border-white/10 pt-6">
         <div className="grid gap-4 sm:grid-cols-2">
           <ReceiptInfoBlock
-            label="Network / Provider"
+            label="Network"
             value={
               <p className="text-sm font-semibold text-white">
                 {paymentRequest.pay_in?.network || paymentRequest.pay_in?.provider || paymentRequest.target_currency}
@@ -518,7 +431,7 @@ function PaymentReceiptPanel({
           <ReceiptInfoBlock
             label={payInLabel}
             value={
-              <div className="rounded-2xl bg-slate-950/40 p-3 font-mono text-xs break-all text-white/90">
+              <div className="font-mono text-xs break-all text-white/90">
                 {payInValue || "Busha will provide this detail shortly."}
               </div>
             }
@@ -526,7 +439,7 @@ function PaymentReceiptPanel({
         </div>
 
         {!isCryptoPayment ? (
-          <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
             {paymentRequest.pay_in?.bank_name ? (
               <ReceiptMetric
                 label="Bank"
@@ -560,9 +473,7 @@ function PaymentReceiptPanel({
       </button>
 
       {paymentRequest.pay_in?.expires_at ? (
-        <p className="text-center text-xs text-white/45">
-          Payment instruction expires {formatDate(paymentRequest.pay_in.expires_at)}
-        </p>
+        <p className="text-center text-xs text-white/45">Expires {formatDate(paymentRequest.pay_in.expires_at)}</p>
       ) : null}
 
       {paymentRequest.timeline?.events?.length ? (
@@ -585,8 +496,6 @@ export default function PublicPaymentPage() {
   const { slug } = useParams();
   const slugValue = Array.isArray(slug) ? slug[0] : slug;
   const [amount, setAmount] = useState("");
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
   const [copied, setCopied] = useState(false);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<
     (typeof PAYMENT_METHOD_OPTIONS)[number]["value"] | null
@@ -625,8 +534,8 @@ export default function PublicPaymentPage() {
         amount: paymentAmount,
         quote_currency: link!.currency,
         target_currency: paymentMethod,
-        email,
-        name,
+        email: "checkout@fluent.so",
+        name: "Guest Payer",
       }),
   });
 
@@ -663,7 +572,7 @@ export default function PublicPaymentPage() {
   }
 
   const handlePay = () => {
-    if (!name || !email || !paymentAmount) {
+    if (!paymentAmount) {
       return;
     }
 
@@ -686,17 +595,15 @@ export default function PublicPaymentPage() {
     <PageShell>
       <BrandHeader />
 
-      <div className="overflow-hidden rounded-[2rem] border border-white/80 bg-white/90 shadow-[0_28px_80px_rgba(15,23,42,0.08)] backdrop-blur">
+      <div className="overflow-hidden rounded-[2rem] border border-white/80 bg-white/92 shadow-[0_28px_80px_rgba(15,23,42,0.08)] backdrop-blur">
         <div className="grid lg:grid-cols-[minmax(0,1.05fr)_minmax(360px,0.95fr)]">
           <InvoicePanel link={link} paymentAmount={paymentAmount} />
 
-          <section className="bg-[linear-gradient(180deg,_#0f172a_0%,_#111f2f_100%)] p-5 text-white sm:p-8">
+          <section className="bg-[linear-gradient(180deg,_#0f172a_0%,_#111f2f_100%)] p-6 text-white sm:p-8 lg:p-10">
             {!paymentRequest ? (
               <CheckoutPanel
                 link={link}
                 amount={amount}
-                name={name}
-                email={email}
                 paymentAmount={paymentAmount}
                 paymentMethod={paymentMethod}
                 isPending={paymentRequestMutation.isPending}
@@ -706,8 +613,6 @@ export default function PublicPaymentPage() {
                     : undefined
                 }
                 onAmountChange={setAmount}
-                onNameChange={setName}
-                onEmailChange={setEmail}
                 onPaymentMethodChange={setSelectedPaymentMethod}
                 onSubmit={handlePay}
               />
