@@ -5,9 +5,11 @@ import { useQuery } from "@tanstack/react-query";
 import { Icon } from "@iconify/react";
 import { getWebhookDeliveries, getWebhooks } from "@/lib/api/service";
 import { Topbar } from "@/components/shared/topbar";
+import { EmptyState } from "@/components/ui";
 import { formatDate } from "@/lib/utils";
 import { useToast } from "@/components/ui/toaster";
 import { cn } from "@/lib/utils";
+import type { WebhookDelivery } from "@/types";
 
 const ALL_EVENTS = [
   { key: "payment.received", desc: "Fired when a payment is received" },
@@ -20,7 +22,7 @@ const ALL_EVENTS = [
 
 export default function WebhooksPage() {
   const [panelOpen, setPanelOpen] = useState(false);
-  const [selectedDelivery, setSelectedDelivery] = useState<any | null>(null);
+  const [selectedDelivery, setSelectedDelivery] = useState<WebhookDelivery | null>(null);
   const [showSecret, setShowSecret] = useState(false);
   
   const { toast } = useToast();
@@ -34,7 +36,7 @@ export default function WebhooksPage() {
     toast({ title: `${label} copied` });
   };
 
-  const handleView = (delivery: any) => {
+  const handleView = (delivery: WebhookDelivery) => {
     setSelectedDelivery(delivery);
     setPanelOpen(true);
   };
@@ -134,15 +136,11 @@ export default function WebhooksPage() {
           </div>
           
           {deliveries.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-center">
-              <div className="w-14 h-14 rounded-2xl bg-secondary flex items-center justify-center mb-3">
-                <Icon icon="solar:activity-bold-duotone" className="w-7 h-7 text-muted-foreground" />
-              </div>
-              <h3 className="font-display font-bold text-base text-slate-800">No activity yet</h3>
-              <p className="text-[10px] text-muted-foreground max-w-xs mx-auto mt-0.5">
-                Logs will appear here once you trigger a test event.
-              </p>
-            </div>
+            <EmptyState
+              icon={<Icon icon="solar:activity-bold-duotone" className="w-7 h-7" />}
+              title="No activity yet"
+              description="Logs will appear here once you trigger a test event."
+            />
           ) : (
             <div className="space-y-1.5">
               {deliveries.map((delivery) => (

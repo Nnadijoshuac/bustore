@@ -5,7 +5,9 @@ import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Icon } from "@iconify/react";
+import { SearchField } from "@/components/shared/search-field";
 import { Topbar } from "@/components/shared/topbar";
+import { EmptyState } from "@/components/ui";
 import { useToast } from "@/components/ui/toaster";
 import { createCustomerBaseSchema, type CreateCustomerInput } from "@/lib/validations/index";
 import { createCustomer, getCustomers, verifyCustomer } from "@/lib/api/service";
@@ -140,16 +142,7 @@ export default function CustomersPage() {
 
       <div className="p-4 sm:p-6 lg:p-8">
         <div className="mb-5 flex items-center justify-between gap-3">
-          <div className="relative flex-1 max-w-sm">
-            <Icon icon="solar:magnifer-bold-duotone" className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder="Search customers..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="input-base pl-8 bg-card border-none shadow-sm h-9"
-            />
-          </div>
+          <SearchField value={searchQuery} onChange={setSearchQuery} placeholder="Search customers..." />
         </div>
 
         {isLoading ? (
@@ -157,15 +150,11 @@ export default function CustomersPage() {
             {[1, 2, 3].map(i => <div key={i} className="h-16 bg-card rounded-xl animate-pulse" />)}
           </div>
         ) : filteredCustomers.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-center">
-            <div className="w-14 h-14 rounded-2xl bg-secondary flex items-center justify-center mb-3">
-              <Icon icon="solar:users-group-rounded-bold-duotone" className="w-7 h-7 text-muted-foreground" />
-            </div>
-            <h3 className="font-display font-bold text-base text-slate-800">No customers yet</h3>
-            <p className="text-[10px] text-muted-foreground max-w-xs mx-auto mt-0.5">
-              Add individual customers to manage their KYC and payment history.
-            </p>
-          </div>
+          <EmptyState
+            icon={<Icon icon="solar:users-group-rounded-bold-duotone" className="w-7 h-7" />}
+            title="No customers yet"
+            description="Add individual customers to manage their KYC and payment history."
+          />
         ) : (
           <div className="space-y-2">
             {filteredCustomers.map((customer) => (

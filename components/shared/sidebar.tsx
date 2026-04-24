@@ -26,7 +26,6 @@ export function Sidebar() {
   const {
     sidebarOpen,
     toggleSidebar,
-    isDemoMode,
     mobileSidebarOpen,
     toggleMobileSidebar,
     closeMobileSidebar,

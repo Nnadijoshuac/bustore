@@ -40,7 +40,7 @@ export function AILinkGenerator({ setValue }: AILinkGeneratorProps) {
       setValue("title", data.title, { shouldValidate: true });
       setValue("description", data.description, { shouldValidate: true });
       setGenerated(true);
-    } catch (err) {
+    } catch {
       setError("AI was unable to generate content. Please try manual entry.");
     } finally {
       setIsLoading(false);

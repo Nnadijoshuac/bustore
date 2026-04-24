@@ -79,13 +79,13 @@ export function AICopilot() {
                 updated[updated.length - 1].content = assistantContent;
                 return updated;
               });
-            } catch (e) {
+            } catch {
               // Ignore parse errors for partial chunks
             }
           }
         }
       }
-    } catch (error) {
+    } catch {
       setMessages((prev) => [
         ...prev,
         { role: "assistant", content: "Sorry, I've encountered an error. Please try again." },

@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getPaymentLinks, createPaymentLink } from "@/lib/api/service";
+import { SearchField } from "@/components/shared/search-field";
 import { Topbar } from "@/components/shared/topbar";
+import { EmptyState } from "@/components/ui";
 import { formatCurrency } from "@/lib/utils";
 import { useToast } from "@/components/ui/toaster";
 import { createPaymentLinkSchema } from "@/lib/validations";
@@ -145,16 +147,7 @@ export default function PaymentLinksPage() {
 
       <div className="p-4 sm:p-6 lg:p-8">
         <div className="mb-5 flex items-center justify-between gap-3">
-          <div className="relative flex-1 max-w-sm">
-            <Icon icon="solar:magnifer-bold-duotone" className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder="Filter links..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="input-base pl-8 bg-card border-none shadow-sm h-9"
-            />
-          </div>
+          <SearchField value={searchQuery} onChange={setSearchQuery} placeholder="Filter links..." />
         </div>
 
         {isLoading ? (
@@ -164,11 +157,11 @@ export default function PaymentLinksPage() {
             ))}
           </div>
         ) : filteredLinks.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-center">
-            <Icon icon="solar:link-broken-bold-duotone" className="w-10 h-10 text-muted-foreground/30 mb-3" />
-            <h3 className="font-display font-bold text-sm text-slate-800">No links active</h3>
-            <p className="text-[10px] text-muted-foreground mt-0.5">Click &apos;New Link&apos; to get started.</p>
-          </div>
+          <EmptyState
+            icon={<Icon icon="solar:link-broken-bold-duotone" className="w-10 h-10" />}
+            title="No links active"
+            description="Click 'New Link' to get started."
+          />
         ) : (
           <div className="space-y-1.5">
             {filteredLinks.map((link) => (
