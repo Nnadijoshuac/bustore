@@ -34,6 +34,14 @@ export const createPaymentLinkSchema = z.object({
   redirect_url: z.string().url("Enter a valid URL").optional().or(z.literal("")),
   expires_at: z.string().optional(),
 }).superRefine((data, ctx) => {
+  if (!data.allow_customer_amount && !data.amount) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Please set a fixed amount or allow customers to enter their own.",
+      path: ["amount"],
+    });
+  }
+
   if (data.allow_customer_amount && data.amount) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,

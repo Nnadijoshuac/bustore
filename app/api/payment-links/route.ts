@@ -16,7 +16,8 @@ export async function GET() {
     const remoteLinks = result.data.map((item) => normalizePaymentLink(item));
     const links = await upsertPaymentLinks(remoteLinks);
     return NextResponse.json({ data: links });
-  } catch {
+  } catch (error) {
+    console.error("[GET Payment Links Error]:", error);
     return NextResponse.json({ data: await listPaymentLinks() });
   }
 }
@@ -26,13 +27,14 @@ export async function POST(request: Request) {
     const input = (await request.json()) as CreatePaymentLinkInput;
     const busha = createBushaClient();
 
-    const payload = {
-      fixed: !input.allow_customer_amount && typeof input.amount === "number",
-      one_time: input.one_time ?? false,
+    const isFixed = !input.allow_customer_amount && typeof input.amount === "number";
+
+    const payload: Record<string, any> = {
+      fixed: isFixed,
+      one_time: !!input.one_time,
       name: input.title,
       title: input.title,
-      description: input.description,
-      quote_amount: !input.allow_customer_amount && typeof input.amount === "number" ? String(input.amount) : undefined,
+      description: input.description || undefined,
       quote_currency: input.currency,
       target_currency: input.target_currency || "USDT",
       require_extra_info: [
@@ -41,19 +43,27 @@ export async function POST(request: Request) {
           required: true,
         },
       ],
-      allow_customer_amount: input.allow_customer_amount || undefined,
-      amount_limit: input.allow_customer_amount && input.min_amount && input.max_amount
-        ? {
-            min_amount: String(input.min_amount),
-            max_amount: String(input.max_amount),
-          }
-        : undefined,
-      meta: {
-        redirect_url: input.redirect_url || undefined,
-        expires_at: input.expires_at || undefined,
-      },
+      allow_customer_amount: !!input.allow_customer_amount,
       dry_run: false,
     };
+
+    if (isFixed) {
+      payload.quote_amount = String(input.amount);
+    }
+
+    if (input.allow_customer_amount && input.min_amount && input.max_amount) {
+      payload.amount_limit = {
+        min_amount: String(input.min_amount),
+        max_amount: String(input.max_amount),
+      };
+    }
+
+    if (input.redirect_url || input.expires_at) {
+      payload.meta = {
+        redirect_url: input.redirect_url || undefined,
+        expires_at: input.expires_at || undefined,
+      };
+    }
 
     const result = await busha.post<{
       message?: string;
@@ -61,7 +71,8 @@ export async function POST(request: Request) {
     }>("/v1/payments/links", payload);
 
     if (!result.data) {
-      return NextResponse.json({ error: "Busha did not return a payment link." }, { status: 502 });
+      console.error("[Busha API Response Missing Data]:", result);
+      return NextResponse.json({ error: "Busha did not return a payment link data object." }, { status: 502 });
     }
 
     const link = await addPaymentLink(
@@ -72,10 +83,13 @@ export async function POST(request: Request) {
         currency: input.currency,
         redirect_url: input.redirect_url,
         expires_at: input.expires_at,
+        one_time: !!input.one_time,
+        allow_customer_amount: !!input.allow_customer_amount,
       })
     );
     return NextResponse.json({ data: link }, { status: 201 });
   } catch (error) {
+    console.error("[POST Create Payment Link Error]:", error);
     const message = error instanceof Error ? error.message : "Unable to create payment link.";
     return NextResponse.json({ error: message }, { status: 500 });
   }

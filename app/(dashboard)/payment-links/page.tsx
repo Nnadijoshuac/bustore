@@ -56,8 +56,12 @@ export default function PaymentLinksPage() {
   });
 
   useEffect(() => {
-    if (!allowCustomerAmount) return;
-    setValue("amount", undefined);
+    if (allowCustomerAmount) {
+      setValue("amount", undefined);
+    } else {
+      setValue("min_amount", undefined);
+      setValue("max_amount", undefined);
+    }
   }, [allowCustomerAmount, setValue]);
 
   const handleNew = () => {
@@ -262,18 +266,43 @@ export default function PaymentLinksPage() {
 
                 <div className="space-y-4 pt-4 border-t border-border/40">
                   <h6 className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.2em]">Financials</h6>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="text-[10px] font-bold block mb-1 text-slate-500 uppercase tracking-wider">Fixed Amt</label>
-                      <input {...register("amount")} type="number" step="0.01" disabled={allowCustomerAmount} className="input-base h-10 font-bold disabled:opacity-40" placeholder="0.00" />
+                  
+                  {!allowCustomerAmount ? (
+                    <div className="grid grid-cols-2 gap-3 animate-in fade-in slide-in-from-top-2">
+                      <div>
+                        <label className="text-[10px] font-bold block mb-1 text-slate-500 uppercase tracking-wider">Fixed Amt</label>
+                        <input {...register("amount", { valueAsNumber: true })} type="number" step="0.01" className="input-base h-10 font-bold" placeholder="0.00" />
+                        {errors.amount && <p className="text-[9px] text-red-500 mt-1 font-bold uppercase tracking-tight">{errors.amount.message}</p>}
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold block mb-1 text-slate-500 uppercase tracking-wider">Currency</label>
+                        <select {...register("currency")} className="input-base h-10 font-bold bg-background">
+                          {CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}
+                        </select>
+                      </div>
                     </div>
-                    <div>
-                      <label className="text-[10px] font-bold block mb-1 text-slate-500 uppercase tracking-wider">Currency</label>
-                      <select {...register("currency")} className="input-base h-10 font-bold bg-background">
-                        {CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}
-                      </select>
+                  ) : (
+                    <div className="space-y-3 animate-in fade-in slide-in-from-top-2">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-[10px] font-bold block mb-1 text-slate-500 uppercase tracking-wider">Min Amt</label>
+                          <input {...register("min_amount", { valueAsNumber: true })} type="number" step="0.01" className="input-base h-10 font-bold" placeholder="0.00" />
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-bold block mb-1 text-slate-500 uppercase tracking-wider">Max Amt</label>
+                          <input {...register("max_amount", { valueAsNumber: true })} type="number" step="0.01" className="input-base h-10 font-bold" placeholder="0.00" />
+                        </div>
+                      </div>
+                      {errors.min_amount && <p className="text-[9px] text-red-500 font-bold uppercase tracking-tight">{errors.min_amount.message}</p>}
+                      <div>
+                        <label className="text-[10px] font-bold block mb-1 text-slate-500 uppercase tracking-wider">Currency</label>
+                        <select {...register("currency")} className="input-base h-10 font-bold bg-background">
+                          {CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}
+                        </select>
+                      </div>
                     </div>
-                  </div>
+                  )}
+
                   <label className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-secondary/50 transition-all cursor-pointer group border border-transparent hover:border-border/40">
                     <input type="checkbox" {...register("allow_customer_amount")} className="w-3.5 h-3.5 rounded accent-primary" />
                     <span className="text-[10px] font-bold text-slate-600 uppercase tracking-wider group-hover:text-slate-900 transition-colors">Client chooses amount</span>
