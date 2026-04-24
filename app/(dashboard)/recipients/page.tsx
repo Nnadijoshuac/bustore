@@ -2,12 +2,13 @@
 
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Building2, CheckCircle2, Plus, Users, X } from "lucide-react";
+import { Icon } from "@iconify/react";
 import { createRecipient, getRecipientRequirements, getRecipients } from "@/lib/api/service";
 import { Topbar } from "@/components/shared/topbar";
 import { formatDate } from "@/lib/utils";
 import type { CreateRecipientInput, Recipient, RecipientRequirement } from "@/types";
 import { useToast } from "@/components/ui/toaster";
+import { cn } from "@/lib/utils";
 
 const COUNTRY_OPTIONS = [
   { label: "Nigeria", value: "NG", currency: "NGN" },
@@ -17,10 +18,12 @@ const COUNTRY_OPTIONS = [
 ];
 
 export default function RecipientsPage() {
-  const [showModal, setShowModal] = useState(false);
+  const [panelOpen, setPanelOpen] = useState(false);
+  const [selectedRecipient, setSelectedRecipient] = useState<Recipient | null>(null);
   const [countryId, setCountryId] = useState("NG");
   const [currencyId, setCurrencyId] = useState("NGN");
   const [fieldValues, setFieldValues] = useState<Record<string, string>>({});
+  const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -32,23 +35,20 @@ export default function RecipientsPage() {
   const { data: requirements = [], isLoading: isLoadingRequirements, refetch } = useQuery({
     queryKey: ["recipient-requirements", countryId, currencyId],
     queryFn: () => getRecipientRequirements(countryId, currencyId),
-    enabled: showModal,
+    enabled: panelOpen && !selectedRecipient,
   });
 
   const mutation = useMutation({
     mutationFn: (input: CreateRecipientInput) => createRecipient(input),
     onSuccess: (recipient) => {
-      queryClient.setQueryData<Recipient[]>(["recipients"], (current = []) => [
-        recipient,
-        ...current.filter((item) => item.id !== recipient.id),
-      ]);
-      toast({ title: "Recipient created", description: recipient.name, variant: "success" });
-      setShowModal(false);
+      queryClient.invalidateQueries({ queryKey: ["recipients"] });
+      toast({ title: "Recipient added", description: recipient.name, variant: "success" });
+      setPanelOpen(false);
       setFieldValues({});
     },
     onError: (error) =>
       toast({
-        title: "Failed to create recipient",
+        title: "Failed to add recipient",
         description: error instanceof Error ? error.message : "Please try again.",
         variant: "error",
       }),
@@ -61,18 +61,28 @@ export default function RecipientsPage() {
     setFieldValues({});
   }
 
+  function handleAdd() {
+    setSelectedRecipient(null);
+    setPanelOpen(true);
+  }
+
+  function handleView(recipient: Recipient) {
+    setSelectedRecipient(recipient);
+    setPanelOpen(true);
+  }
+
   function renderField(requirement: RecipientRequirement) {
     const commonProps = {
       value: fieldValues[requirement.name] || "",
       onChange: (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
         setFieldValues((current) => ({ ...current, [requirement.name]: event.target.value })),
-      className: "input-base",
+      className: "input-base h-10 font-bold text-slate-800",
     };
 
     if (requirement.options?.length) {
       return (
         <select {...commonProps}>
-          <option value="">Select</option>
+          <option value="">Select option</option>
           {requirement.options.map((option) => (
             <option key={option.value} value={option.value}>
               {option.label}
@@ -89,11 +99,7 @@ export default function RecipientsPage() {
     const missingField = requirements.find((item) => item.required && !fieldValues[item.name]?.trim());
 
     if (missingField) {
-      toast({
-        title: "Missing field",
-        description: `${missingField.display_name} is required.`,
-        variant: "error",
-      });
+      toast({ title: "Required field", description: `${missingField.display_name} is missing.`, variant: "error" });
       return;
     }
 
@@ -111,143 +117,258 @@ export default function RecipientsPage() {
     });
   }
 
+  const filteredRecipients = recipients.filter(r => 
+    r.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    r.bank_account_number.includes(searchQuery)
+  );
+
   return (
-    <div>
+    <div className="relative min-h-screen">
       <Topbar
         title="Recipients"
-        description="Create settlement recipients from Busha's live field requirements"
+        description="Payout targets for business settlements"
         actions={
-          <button onClick={() => setShowModal(true)} className="btn-primary w-full justify-center sm:w-auto">
-            <Plus className="h-4 w-4" />
+          <button onClick={handleAdd} className="btn-primary py-1.5 h-8">
+            <Icon icon="solar:user-plus-bold-duotone" className="w-4 h-4" />
             Add Recipient
           </button>
         }
       />
 
-      <div className="p-4 sm:p-6">
-        {isLoading ? (
-          <div className="space-y-3">
-            {Array.from({ length: 3 }).map((_, index) => (
-              <div key={index} className="card-glass animate-pulse p-4">
-                <div className="mb-2 h-4 w-1/3 rounded bg-secondary" />
-                <div className="h-3 w-1/2 rounded bg-secondary" />
-              </div>
-            ))}
+      <div className="p-4 sm:p-6 lg:p-8">
+        <div className="mb-5 flex items-center justify-between gap-3">
+          <div className="relative flex-1 max-w-sm">
+            <Icon icon="solar:magnifer-bold-duotone" className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Search recipients..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="input-base pl-8 bg-card border-none shadow-sm h-9"
+            />
           </div>
-        ) : recipients.length === 0 ? (
-          <div className="card-glass p-12 text-center">
-            <Users className="mx-auto mb-3 h-10 w-10 text-muted-foreground" />
-            <p className="mb-1 font-semibold">No recipients yet</p>
-            <p className="mb-4 text-sm text-muted-foreground">
-              Pull the required fields from Busha, then create a payout recipient.
+        </div>
+
+        {isLoading ? (
+          <div className="space-y-2">
+            {[1, 2, 3].map(i => <div key={i} className="h-16 bg-card rounded-xl animate-pulse" />)}
+          </div>
+        ) : filteredRecipients.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <div className="w-14 h-14 rounded-2xl bg-secondary flex items-center justify-center mb-3">
+              <Icon icon="solar:bank-bold-duotone" className="w-7 h-7 text-muted-foreground" />
+            </div>
+            <h3 className="font-display font-bold text-base text-slate-800">No recipients added</h3>
+            <p className="text-[10px] text-muted-foreground max-w-xs mx-auto mt-0.5">
+              Add bank accounts or mobile wallets to receive settlements.
             </p>
-            <button onClick={() => setShowModal(true)} className="btn-primary mx-auto">
-              Add your first recipient
-            </button>
           </div>
         ) : (
-          <div className="space-y-3">
-            {recipients.map((recipient) => (
-              <div key={recipient.id} className="card-glass p-4">
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-                  <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-secondary">
-                    <Building2 className="h-5 w-5 text-muted-foreground" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-semibold">{recipient.name}</p>
-                      {recipient.is_verified ? (
-                        <CheckCircle2 className="h-3.5 w-3.5 flex-shrink-0 text-emerald-500" />
-                      ) : null}
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {recipient.bank_name || "Bank account"} · ****{recipient.bank_account_number.slice(-4)}
-                    </p>
-                    <p className="text-xs text-muted-foreground">{recipient.bank_account_name || recipient.name}</p>
-                  </div>
-                  <div className="text-left sm:text-right">
-                    <span className="rounded-md bg-secondary px-2 py-1 text-xs font-medium">{recipient.currency}</span>
-                    <p className="mt-1 text-xs text-muted-foreground">{formatDate(recipient.created_at)}</p>
-                  </div>
+          <div className="space-y-2">
+            {filteredRecipients.map((recipient) => (
+              <div
+                key={recipient.id}
+                onClick={() => handleView(recipient)}
+                className="group flex items-center gap-3 bg-card hover:bg-slate-50/50 p-3 rounded-xl transition-all cursor-pointer border border-transparent hover:border-border/50 shadow-sm"
+              >
+                <div className="w-10 h-10 rounded-lg bg-secondary text-muted-foreground flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
+                  <Icon icon="solar:bank-bold-duotone" className="w-5 h-5" />
                 </div>
+                
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5">
+                    <h4 className="font-bold text-xs truncate text-slate-800">{recipient.name}</h4>
+                    {recipient.is_verified && (
+                      <Icon icon="solar:check-circle-bold-duotone" className="w-3.5 h-3.5 text-emerald-500" />
+                    )}
+                  </div>
+                  <p className="text-[10px] text-muted-foreground mt-0.5 truncate">
+                    {recipient.bank_name || "Bank account"} · ****{recipient.bank_account_number.slice(-4)}
+                  </p>
+                </div>
+
+                <div className="hidden sm:block text-right px-3">
+                   <span className="text-[9px] font-bold uppercase tracking-wider bg-secondary px-1.5 py-0.5 rounded-lg text-slate-700">
+                    {recipient.currency}
+                  </span>
+                  <p className="text-[9px] text-muted-foreground mt-0.5 font-bold uppercase tracking-wider">
+                    {formatDate(recipient.created_at)}
+                  </p>
+                </div>
+
+                <Icon icon="solar:alt-arrow-right-bold-duotone" className="w-4 h-4 text-muted-foreground/30" />
               </div>
             ))}
           </div>
         )}
       </div>
 
-      {showModal ? (
-        <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-3 pt-6 sm:items-center sm:p-4">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowModal(false)} />
-          <div className="relative my-auto max-h-[calc(100vh-2rem)] w-full max-w-2xl overflow-y-auto rounded-2xl bg-card p-4 shadow-xl animate-slide-in sm:p-6">
-            <div className="mb-5 flex items-center justify-between">
-              <h2 className="font-display text-xl font-bold">Add Recipient</h2>
-              <button onClick={() => setShowModal(false)} className="rounded-lg p-1.5 hover:bg-secondary">
-                <X className="h-4 w-4" />
+      {/* Side Panel Drawer */}
+      <div 
+        className={cn(
+          "fixed inset-0 z-50 transition-opacity duration-300",
+          panelOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+        )}
+      >
+        <div className="absolute inset-0 bg-black/10 backdrop-blur-[1px]" onClick={() => setPanelOpen(false)} />
+        
+        <div 
+          className={cn(
+            "absolute right-0 top-0 h-full w-full max-w-xl bg-card shadow-2xl transition-transform duration-300 ease-out transform border-l border-border/50",
+            panelOpen ? "translate-x-0" : "translate-x-full"
+          )}
+        >
+          <div className="flex flex-col h-full">
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-border/40">
+              <div>
+                <h2 className="font-display font-bold text-lg text-slate-900">
+                  {selectedRecipient ? "Recipient Details" : "Add Recipient"}
+                </h2>
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5">
+                  {selectedRecipient ? `Managing payout for ${selectedRecipient.name}` : "Configure a payout destination"}
+                </p>
+              </div>
+              <button 
+                onClick={() => setPanelOpen(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-secondary transition-colors"
+              >
+                <Icon icon="solar:close-circle-bold-duotone" className="w-5 h-5 text-muted-foreground" />
               </button>
             </div>
 
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                <div>
-                  <label className="mb-1.5 block text-sm font-medium">Country</label>
-                  <select value={countryId} onChange={(event) => updateCountry(event.target.value)} className="input-base bg-background">
-                    {COUNTRY_OPTIONS.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="mb-1.5 block text-sm font-medium">Currency</label>
-                  <input value={currencyId} readOnly className="input-base bg-secondary" />
-                </div>
-              </div>
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto p-5 space-y-6 custom-scrollbar">
+              
+              {selectedRecipient ? (
+                <div className="space-y-6">
+                  <div className="p-5 rounded-[1.5rem] bg-secondary/30 flex items-center gap-4 border border-border/40">
+                     <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center shadow-sm">
+                       <Icon icon="solar:bank-bold-duotone" className="w-7 h-7 text-primary" />
+                     </div>
+                     <div>
+                       <h3 className="font-bold text-base text-slate-800">{selectedRecipient.name}</h3>
+                       <p className="text-xs text-muted-foreground font-medium">{selectedRecipient.bank_name}</p>
+                     </div>
+                  </div>
 
-              <button onClick={() => refetch()} className="btn-secondary">
-                Reload Requirements
-              </button>
-
-              {isLoadingRequirements ? (
-                <div className="card-glass p-4 text-sm text-muted-foreground">Loading Busha recipient fields...</div>
-              ) : (
-                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                  {requirements.map((requirement) => (
-                    <div key={requirement.name} className={requirement.type === "textarea" ? "md:col-span-2" : ""}>
-                      <label className="mb-1.5 block text-sm font-medium">
-                        {requirement.display_name}
-                        {requirement.required ? " *" : ""}
-                      </label>
-                      {renderField(requirement)}
-                      {requirement.description ? (
-                        <p className="mt-1 text-xs text-muted-foreground">{requirement.description}</p>
-                      ) : null}
+                  <div className="grid grid-cols-1 gap-5">
+                    <div className="space-y-1">
+                      <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.2em] px-1">Account Number</p>
+                      <div className="text-xs font-mono font-bold bg-secondary/50 p-3 rounded-xl border border-border/30 text-slate-800 tracking-wider">
+                        {selectedRecipient.bank_account_number}
+                      </div>
                     </div>
-                  ))}
+                    <div className="grid grid-cols-2 gap-5">
+                      <div className="space-y-1 p-3 rounded-xl bg-secondary/30 border border-border/20">
+                        <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.2em]">Currency</p>
+                        <p className="text-xs font-bold text-slate-800">{selectedRecipient.currency}</p>
+                      </div>
+                      <div className="space-y-1 p-3 rounded-xl bg-secondary/30 border border-border/20">
+                        <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.2em]">Status</p>
+                        <div className="flex items-center gap-1.5">
+                          <span className={cn(
+                            "w-1.5 h-1.5 rounded-full",
+                            selectedRecipient.is_verified ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]" : "bg-amber-500"
+                          )} />
+                          <p className="text-xs font-bold text-slate-800">{selectedRecipient.is_verified ? "Verified" : "Pending"}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-primary/5 flex items-start gap-3 border border-primary/10">
+                    <Icon icon="solar:info-circle-bold-duotone" className="w-4 h-4 text-primary mt-0.5" />
+                    <p className="text-[10px] text-slate-600 leading-relaxed font-medium">
+                      This recipient is active. Settlements sent to this account usually reflect within 15-30 minutes during business hours.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  <div className="space-y-3">
+                    <h6 className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.2em] px-1">Network Selection</h6>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-xs font-bold block mb-1 text-slate-700">Country</label>
+                        <select 
+                          value={countryId} 
+                          onChange={(e) => updateCountry(e.target.value)} 
+                          className="input-base bg-background h-10 font-bold text-slate-800"
+                        >
+                          {COUNTRY_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-xs font-bold block mb-1 text-slate-700">Currency</label>
+                        <input value={currencyId} readOnly className="input-base bg-secondary/50 text-muted-foreground h-10 font-bold" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3 pt-4 border-t border-border/40">
+                    <div className="flex items-center justify-between px-1">
+                       <h6 className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.2em]">Account Details</h6>
+                       <button onClick={() => refetch()} className="text-[9px] font-bold text-primary flex items-center gap-1 hover:underline uppercase tracking-wider">
+                         <Icon icon="solar:restart-bold-duotone" className={cn("w-3 h-3", isLoadingRequirements && "animate-spin")} />
+                         Refresh Fields
+                       </button>
+                    </div>
+
+                    {isLoadingRequirements ? (
+                      <div className="space-y-3">
+                        {[1, 2, 3].map(i => <div key={i} className="h-10 bg-secondary/50 rounded-xl animate-pulse" />)}
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {requirements.map((req) => (
+                          <div key={req.name} className={cn(req.type === "textarea" && "md:col-span-2")}>
+                            <label className="text-xs font-bold block mb-1 text-slate-700">
+                              {req.display_name} {req.required && <span className="text-red-500">*</span>}
+                            </label>
+                            {renderField(req)}
+                            {req.description && <p className="text-[9px] text-muted-foreground mt-1 font-medium italic opacity-70">{req.description}</p>}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-secondary/30 flex items-start gap-3 border border-border/30">
+                    <Icon icon="solar:shield-warning-bold-duotone" className="w-4 h-4 text-muted-foreground mt-0.5" />
+                    <p className="text-[10px] text-muted-foreground leading-normal font-medium">
+                      Data requirements are pulled dynamically from Busha for the selected country to ensure settlement finality.
+                    </p>
+                  </div>
                 </div>
               )}
+            </div>
 
-              <p className="rounded-lg bg-secondary px-3 py-2 text-xs text-muted-foreground">
-                These fields come from Busha for the selected country and currency.
-              </p>
-
-              <div className="flex flex-col-reverse gap-3 sm:flex-row">
-                <button onClick={() => setShowModal(false)} className="btn-secondary flex-1">
-                  Cancel
-                </button>
-                <button
-                  onClick={handleCreateRecipient}
-                  disabled={mutation.isPending || requirements.length === 0}
-                  className="btn-primary flex-1 justify-center"
+            {/* Footer */}
+            <div className="px-5 py-4 border-t border-border/40 bg-slate-50/50">
+              <div className="flex gap-2.5">
+                <button 
+                  type="button" 
+                  onClick={() => setPanelOpen(false)}
+                  className="flex-1 h-10 px-4 rounded-xl bg-white border border-border font-bold text-xs hover:bg-slate-50 transition-colors"
                 >
-                  {mutation.isPending ? "Saving..." : "Save Recipient"}
+                  {selectedRecipient ? "Close" : "Cancel"}
                 </button>
+                {!selectedRecipient && (
+                  <button 
+                    onClick={handleCreateRecipient}
+                    disabled={mutation.isPending || requirements.length === 0}
+                    className="flex-[1.5] btn-primary justify-center h-10"
+                  >
+                    <Icon icon="solar:check-read-bold-duotone" className="w-4 h-4" />
+                    {mutation.isPending ? "Adding..." : "Add Recipient"}
+                  </button>
+                )}
               </div>
             </div>
           </div>
         </div>
-      ) : null}
+      </div>
     </div>
   );
 }

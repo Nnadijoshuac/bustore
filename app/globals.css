@@ -25,7 +25,7 @@
     --border: 215 20% 88%;
     --input: 215 20% 88%;
     --ring: 162 100% 39%;
-    --radius: 1rem;
+    --radius: 0.75rem;
     --font-geist-sans: 'Sora', system-ui, sans-serif;
     --font-clash: 'Sora', system-ui, sans-serif;
   }
@@ -60,6 +60,7 @@
 
   html {
     scroll-behavior: smooth;
+    font-size: 14px; /* Reduced from 16px to simulate 80-90% zoom effect */
   }
 
   body {
@@ -68,7 +69,7 @@
     font-feature-settings: "rlig" 1, "calt" 1;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    line-height: 1.5;
+    line-height: 1.4;
   }
 
   h1,
@@ -79,13 +80,13 @@
   h6 {
     font-family: var(--font-clash);
     font-weight: 700;
-    letter-spacing: -0.03em;
+    letter-spacing: -0.02em;
   }
 }
 
 ::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
@@ -97,6 +98,10 @@
   border-radius: 99px;
 }
 
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.3);
+}
+
 ::selection {
   background: hsl(162 100% 39% / 0.18);
   color: hsl(var(--foreground));
@@ -104,15 +109,15 @@
 
 @layer components {
   .card-glass {
-    @apply rounded-2xl border border-border/90 bg-card shadow-sm shadow-slate-200/60;
+    @apply rounded-xl border border-border/70 bg-card shadow-sm shadow-slate-200/40;
   }
 
   .stat-card {
-    @apply card-glass flex flex-col gap-2 p-5;
+    @apply card-glass flex flex-col gap-1.5 p-4;
   }
 
   .badge-status {
-    @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium;
+    @apply inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider;
   }
 
   .badge-green {
@@ -132,7 +137,7 @@
   }
 
   .sidebar-link {
-    @apply flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-muted-foreground transition-all duration-150 hover:bg-secondary hover:text-foreground;
+    @apply flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs font-bold text-muted-foreground transition-all duration-150 hover:bg-secondary hover:text-foreground;
   }
 
   .sidebar-link-active {
@@ -140,19 +145,33 @@
   }
 
   .btn-primary {
-    @apply inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors duration-150 hover:bg-busha-green-dark disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex items-center gap-2 rounded-lg bg-primary px-3.5 py-1.5 text-xs font-bold text-primary-foreground transition-all duration-150 hover:bg-busha-green-dark disabled:cursor-not-allowed disabled:opacity-50 active:scale-[0.98];
   }
 
   .btn-secondary {
-    @apply inline-flex items-center gap-2 rounded-xl bg-secondary px-4 py-2.5 text-sm font-medium text-secondary-foreground transition-colors duration-150 hover:bg-muted;
+    @apply inline-flex items-center gap-2 rounded-lg bg-secondary px-3.5 py-1.5 text-xs font-bold text-secondary-foreground transition-all duration-150 hover:bg-muted active:scale-[0.98];
   }
 
   .input-base {
-    @apply w-full rounded-xl border border-input bg-background px-3 py-2.5 text-sm transition-colors placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/25;
+    @apply w-full rounded-lg border border-input bg-background px-3 py-1.5 text-xs transition-all placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20;
   }
 
   .demo-banner {
-    @apply flex items-center gap-2 border-b border-amber-200 bg-amber-50 px-4 py-2 text-sm font-medium text-amber-800;
+    @apply flex items-center gap-2 border-b border-amber-200 bg-amber-50 px-4 py-1.5 text-xs font-bold text-amber-800 uppercase tracking-wider;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 10px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.3);
   }
 }
 
@@ -170,4 +189,10 @@
 .number-animate {
   display: inline-block;
   animation: count-up 0.5s ease forwards;
+}
+
+/* Solar Icon size optimization */
+.solar-icon {
+  width: 1.25rem;
+  height: 1.25rem;
 }

@@ -2,33 +2,37 @@
 
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowUpRight, Info, X } from "lucide-react";
+import { Icon } from "@iconify/react";
 import { getSettlements, getRecipients, createSettlement } from "@/lib/api/service";
 import { Topbar } from "@/components/shared/topbar";
 import { StatusBadge } from "@/components/ui/badge";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { useToast } from "@/components/ui/toaster";
 import { DEMO_ACCOUNT } from "@/lib/api/demo-data";
+import { cn } from "@/lib/utils";
 
 const DEMO_RATE = 1547;
 
 export default function SettlementsPage() {
-  const [showModal, setShowModal] = useState(false);
+  const [panelOpen, setPanelOpen] = useState(false);
+  const [selectedSettlement, setSelectedSettlement] = useState<any | null>(null);
   const [amount, setAmount] = useState("");
   const [recipientId, setRecipientId] = useState("");
   const [note, setNote] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: settlements = [] } = useQuery({ queryKey: ["settlements"], queryFn: getSettlements });
+  const { data: settlements = [], isLoading } = useQuery({ queryKey: ["settlements"], queryFn: getSettlements });
   const { data: recipients = [] } = useQuery({ queryKey: ["recipients"], queryFn: getRecipients });
 
   const mutation = useMutation({
     mutationFn: createSettlement,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["settlements"] });
-      toast({ title: "Settlement initiated!", description: "Funds are on their way.", variant: "success" });
-      setShowModal(false);
+      toast({ title: "Settlement processed", description: "Funds are on their way to the bank.", variant: "success" });
+      setPanelOpen(false);
       setAmount("");
       setRecipientId("");
       setNote("");
@@ -39,196 +43,301 @@ export default function SettlementsPage() {
   const amountNum = parseFloat(amount) || 0;
   const fee = amountNum * 0.003;
 
+  const handleNew = () => {
+    setSelectedSettlement(null);
+    setPanelOpen(true);
+  };
+
+  const handleView = (settlement: any) => {
+    setSelectedSettlement(settlement);
+    setPanelOpen(true);
+  };
+
+  const filteredSettlements = settlements.filter(s => 
+    s.recipient?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    s.reference.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
-    <div>
+    <div className="relative min-h-screen">
       <Topbar
         title="Settlements"
-        description="Move your USD balance to local bank accounts"
+        description="Withdraw USD balance to local bank accounts"
         actions={
-          <button onClick={() => setShowModal(true)} className="btn-primary w-full justify-center sm:w-auto">
-            <ArrowUpRight className="h-4 w-4" />
-            Settle Funds
+          <button onClick={handleNew} className="btn-primary py-1.5 h-8">
+            <Icon icon="solar:card-send-bold-duotone" className="w-4 h-4" />
+            New Settlement
           </button>
         }
       />
 
-      <div className="space-y-4 p-4 sm:p-6">
-        <div className="flex flex-col gap-4 rounded-2xl border border-primary/20 bg-primary/5 p-4 sm:flex-row sm:items-center">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/15 text-primary">
-            <ArrowUpRight className="h-5 w-5" />
-          </div>
-          <div>
-            <p className="text-xs font-medium text-muted-foreground">Available to settle</p>
-            <p className="font-display text-2xl font-bold">{formatCurrency(DEMO_ACCOUNT.balance_usd)}</p>
-          </div>
-          <div className="sm:ml-auto sm:text-right">
-            <p className="text-xs text-muted-foreground">Indicative rate</p>
-            <p className="text-sm font-semibold">1 USD = NGN {DEMO_RATE.toLocaleString()}</p>
-          </div>
+      <div className="p-4 sm:p-6 lg:p-8 space-y-6">
+        {/* Balance Status - Premium Hero */}
+        <div className="relative overflow-hidden rounded-[2rem] bg-slate-900 p-6 text-white shadow-xl">
+           <div className="absolute top-0 right-0 w-64 h-64 bg-primary opacity-10 rounded-full translate-x-1/2 -translate-y-1/2 blur-3xl" />
+           <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+             <div>
+               <p className="text-[10px] font-bold text-white/50 uppercase tracking-[0.2em] mb-2">Available for Settlement</p>
+               <h2 className="text-3xl font-display font-bold tracking-tight">{formatCurrency(DEMO_ACCOUNT.balance_usd)}</h2>
+             </div>
+             <div className="bg-white/5 backdrop-blur-md rounded-xl p-3 border border-white/10">
+                <p className="text-[9px] font-bold text-white/40 uppercase tracking-widest mb-1">Live Exchange Rate</p>
+                <p className="text-xs font-bold">1 USD = <span className="text-primary">{DEMO_RATE.toLocaleString()} NGN</span></p>
+             </div>
+           </div>
         </div>
 
-        <div className="space-y-3 md:hidden">
-          {settlements.map((settlement) => (
-            <div key={settlement.id} className="card-glass p-4">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold">{settlement.recipient?.name ?? "-"}</p>
-                  <p className="text-xs text-muted-foreground">{settlement.recipient?.bank_name}</p>
-                </div>
-                <StatusBadge status={settlement.status} />
-              </div>
-              <div className="mt-3 grid grid-cols-2 gap-3 text-xs">
-                <div>
-                  <p className="text-muted-foreground">Reference</p>
-                  <p className="mt-1 break-all font-mono text-[11px]">{settlement.reference}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-muted-foreground">Amount</p>
-                  <p className="mt-1 font-semibold">{formatCurrency(settlement.amount_usd)}</p>
-                  <p className="text-muted-foreground">
-                    Approx. {formatCurrency(settlement.amount_local, settlement.local_currency)}
-                  </p>
-                </div>
-              </div>
-              <p className="mt-3 text-xs text-muted-foreground">{formatDate(settlement.created_at)}</p>
+        <div>
+          <div className="mb-5 flex items-center justify-between gap-3">
+            <div className="relative flex-1 max-w-sm">
+              <Icon icon="solar:magnifer-bold-duotone" className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="Search history..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="input-base pl-8 bg-card border-none shadow-sm h-9"
+              />
             </div>
-          ))}
-        </div>
-
-        <div className="card-glass hidden overflow-x-auto md:block">
-          <div className="border-b border-border p-4">
-            <h2 className="font-display text-base font-bold">Settlement History</h2>
           </div>
-          <table className="w-full min-w-[760px] text-sm">
-            <thead>
-              <tr className="border-b border-border bg-secondary/50">
-                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">Recipient</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">Reference</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">Date</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">Status</th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-muted-foreground">Amount</th>
-              </tr>
-            </thead>
-            <tbody>
-              {settlements.map((settlement) => (
-                <tr key={settlement.id} className="border-b border-border last:border-0 hover:bg-secondary/30">
-                  <td className="px-4 py-3">
-                    <p className="font-medium">{settlement.recipient?.name ?? "-"}</p>
-                    <p className="text-xs text-muted-foreground">{settlement.recipient?.bank_name}</p>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className="rounded bg-secondary px-2 py-0.5 font-mono text-xs text-muted-foreground">
-                      {settlement.reference}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-sm text-muted-foreground">{formatDate(settlement.created_at)}</td>
-                  <td className="px-4 py-3">
-                    <StatusBadge status={settlement.status} />
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <p className="font-semibold">{formatCurrency(settlement.amount_usd)}</p>
-                    <p className="text-xs text-muted-foreground">
-                      Approx. {formatCurrency(settlement.amount_local, settlement.local_currency)}
+
+          {isLoading ? (
+            <div className="space-y-2">
+              {[1, 2, 3].map(i => <div key={i} className="h-16 bg-card rounded-xl animate-pulse" />)}
+            </div>
+          ) : filteredSettlements.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <div className="w-14 h-14 rounded-2xl bg-secondary flex items-center justify-center mb-3">
+                <Icon icon="solar:history-bold-duotone" className="w-7 h-7 text-muted-foreground" />
+              </div>
+              <h3 className="font-display font-bold text-base text-slate-800">No history found</h3>
+              <p className="text-[10px] text-muted-foreground max-w-xs mx-auto mt-0.5">
+                Your completed and pending settlements will appear here.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {filteredSettlements.map((settlement) => (
+                <div
+                  key={settlement.id}
+                  onClick={() => handleView(settlement)}
+                  className="group flex items-center gap-3 bg-card hover:bg-slate-50/50 p-3 rounded-xl transition-all cursor-pointer border border-transparent hover:border-border/50 shadow-sm"
+                >
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
+                    <Icon icon="solar:bank-bold-duotone" className="w-5 h-5" />
+                  </div>
+                  
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <h4 className="font-bold text-xs truncate text-slate-800">{settlement.recipient?.name || "Settlement"}</h4>
+                      <StatusBadge status={settlement.status} className="text-[8px] px-1 py-0" />
+                    </div>
+                    <p className="text-[10px] text-muted-foreground mt-0.5 font-mono font-medium">
+                      REF: {settlement.reference}
                     </p>
-                  </td>
-                </tr>
+                  </div>
+
+                  <div className="hidden sm:block text-right px-3">
+                    <p className="text-xs font-bold text-slate-800">
+                      {formatCurrency(settlement.amount_usd)}
+                    </p>
+                    <p className="text-[9px] text-muted-foreground uppercase tracking-wider font-bold">
+                      ≈ {formatCurrency(settlement.amount_local, settlement.local_currency)}
+                    </p>
+                  </div>
+
+                  <Icon icon="solar:alt-arrow-right-bold-duotone" className="w-4 h-4 text-muted-foreground/30" />
+                </div>
               ))}
-            </tbody>
-          </table>
+            </div>
+          )}
         </div>
       </div>
 
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-3 pt-6 sm:items-center sm:p-4">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowModal(false)} />
-          <div className="relative my-auto max-h-[calc(100vh-2rem)] w-full max-w-md overflow-y-auto rounded-2xl bg-card p-4 shadow-xl animate-slide-in sm:p-6">
-            <div className="mb-5 flex items-center justify-between">
-              <h2 className="font-display text-xl font-bold">Settle Funds</h2>
-              <button onClick={() => setShowModal(false)} className="rounded-lg p-1.5 hover:bg-secondary">
-                <X className="h-4 w-4" />
+      {/* Side Panel Drawer */}
+      <div 
+        className={cn(
+          "fixed inset-0 z-50 transition-opacity duration-300",
+          panelOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+        )}
+      >
+        <div className="absolute inset-0 bg-black/10 backdrop-blur-[1px]" onClick={() => setPanelOpen(false)} />
+        
+        <div 
+          className={cn(
+            "absolute right-0 top-0 h-full w-full max-w-lg bg-card shadow-2xl transition-transform duration-300 ease-out transform border-l border-border/50",
+            panelOpen ? "translate-x-0" : "translate-x-full"
+          )}
+        >
+          <div className="flex flex-col h-full">
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-border/40">
+              <div>
+                <h2 className="font-display font-bold text-lg text-slate-900">
+                  {selectedSettlement ? "Settlement Details" : "Initiate Settlement"}
+                </h2>
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5">
+                  {selectedSettlement ? `Reference ${selectedSettlement.reference}` : "Withdraw to a saved recipient"}
+                </p>
+              </div>
+              <button 
+                onClick={() => setPanelOpen(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-secondary transition-colors"
+              >
+                <Icon icon="solar:close-circle-bold-duotone" className="w-5 h-5 text-muted-foreground" />
               </button>
             </div>
 
-            <div className="space-y-4">
-              <div>
-                <label className="mb-1.5 block text-sm font-medium">Recipient *</label>
-                <select value={recipientId} onChange={(event) => setRecipientId(event.target.value)} className="input-base bg-background">
-                  <option value="">Select a recipient...</option>
-                  {recipients.map((recipient) => (
-                    <option key={recipient.id} value={recipient.id}>
-                      {recipient.name} - {recipient.bank_name} ****{recipient.bank_account_number.slice(-4)}
-                    </option>
-                  ))}
-                </select>
-              </div>
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto p-5 space-y-6 custom-scrollbar">
+              
+              {selectedSettlement ? (
+                <div className="space-y-6">
+                  <div className="flex flex-col items-center text-center p-6 rounded-[2rem] bg-secondary/30 border border-border/40">
+                     <div className="w-14 h-14 rounded-xl bg-white flex items-center justify-center shadow-sm mb-3">
+                       <Icon icon="solar:bank-bold-duotone" className="w-7 h-7 text-primary" />
+                     </div>
+                     <h3 className="text-2xl font-bold tracking-tight text-slate-900">{formatCurrency(selectedSettlement.amount_usd)}</h3>
+                     <p className="text-xs text-muted-foreground mt-0.5 font-bold">To {selectedSettlement.recipient?.name}</p>
+                     <StatusBadge status={selectedSettlement.status} className="mt-3" />
+                  </div>
 
-              <div>
-                <label className="mb-1.5 block text-sm font-medium">Amount (USD) *</label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 font-medium text-muted-foreground">$</span>
-                  <input
-                    type="number"
-                    value={amount}
-                    onChange={(event) => setAmount(event.target.value)}
-                    placeholder="0.00"
-                    className="input-base pl-7"
-                  />
+                  <div className="grid grid-cols-1 gap-5">
+                    <div className="space-y-3">
+                      <h6 className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.2em] px-1">Breakdown</h6>
+                      <div className="space-y-2 p-4 rounded-xl bg-card border border-border/40 shadow-sm">
+                        <div className="flex justify-between text-xs font-bold">
+                          <span className="text-muted-foreground">Local Amount</span>
+                          <span className="text-slate-800">{formatCurrency(selectedSettlement.amount_local, selectedSettlement.local_currency)}</span>
+                        </div>
+                        <div className="flex justify-between text-[10px] font-bold">
+                          <span className="text-muted-foreground">Exchange Rate</span>
+                          <span className="text-primary">1 USD = {selectedSettlement.exchange_rate} {selectedSettlement.local_currency}</span>
+                        </div>
+                        <div className="h-px bg-border/40 my-1" />
+                        <div className="flex justify-between text-xs font-bold">
+                          <span className="text-muted-foreground">Network Fee</span>
+                          <span className="text-red-500">-{formatCurrency(selectedSettlement.fee_usd)}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      <h6 className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.2em] px-1">Meta Data</h6>
+                      <div className="grid grid-cols-2 gap-3">
+                         <div className="p-3 rounded-xl bg-secondary/50 border border-border/20">
+                           <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mb-1 opacity-60">Date</p>
+                           <p className="text-xs font-bold text-slate-800">{formatDate(selectedSettlement.created_at)}</p>
+                         </div>
+                         <div className="p-3 rounded-xl bg-secondary/50 border border-border/20">
+                           <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mb-1 opacity-60">Reference</p>
+                           <p className="text-[10px] font-mono font-bold truncate text-slate-800">{selectedSettlement.reference}</p>
+                         </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="space-y-6">
+                  <div className="space-y-3">
+                    <h6 className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.2em] px-1">Destination</h6>
+                    <div className="space-y-3">
+                      <div>
+                        <label className="text-xs font-bold block mb-1 text-slate-700">Recipient Bank Account</label>
+                        <select 
+                          value={recipientId} 
+                          onChange={(e) => setRecipientId(e.target.value)} 
+                          className="input-base h-10 bg-background"
+                        >
+                          <option value="">Choose an account...</option>
+                          {recipients.map(r => (
+                            <option key={r.id} value={r.id}>{r.name} — {r.bank_name}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
 
-              {amountNum > 0 ? (
-                <div className="space-y-2 rounded-xl bg-secondary p-3.5">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">You send</span>
-                    <span className="font-medium">{formatCurrency(amountNum)}</span>
+                  <div className="space-y-3 pt-4 border-t border-border/40">
+                    <h6 className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.2em] px-1">Amount to Settle</h6>
+                    <div className="space-y-3">
+                      <div className="relative">
+                        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 font-bold text-muted-foreground">$</span>
+                        <input
+                          type="number"
+                          value={amount}
+                          onChange={(e) => setAmount(e.target.value)}
+                          placeholder="0.00"
+                          className="input-base pl-7 h-12 text-lg font-bold"
+                        />
+                      </div>
+                      
+                      {amountNum > 0 && (
+                        <div className="p-4 rounded-xl bg-primary/5 border border-primary/10 space-y-2.5">
+                          <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider">
+                            <span className="text-primary/60">Platform Fee (0.3%)</span>
+                            <span className="text-primary">-{formatCurrency(fee)}</span>
+                          </div>
+                          <div className="h-px bg-primary/10" />
+                          <div className="flex justify-between items-end">
+                            <span className="text-[10px] font-bold text-primary uppercase tracking-[0.2em]">Net Payout</span>
+                            <div className="text-right">
+                               <p className="text-base font-bold text-primary">
+                                 NGN {((amountNum - fee) * DEMO_RATE).toLocaleString()}
+                               </p>
+                               <p className="text-[9px] text-primary/60 font-bold uppercase tracking-tight">Live Rate applied</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Network fee</span>
-                    <span className="font-medium">-{formatCurrency(fee)}</span>
+
+                  <div className="space-y-3 pt-4 border-t border-border/40">
+                    <h6 className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.2em] px-1">Additional Note</h6>
+                    <input
+                      value={note}
+                      onChange={(e) => setNote(e.target.value)}
+                      placeholder="e.g. Project payout"
+                      className="input-base h-10"
+                    />
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Rate</span>
-                    <span className="font-medium">1 USD = NGN {DEMO_RATE.toLocaleString()}</span>
-                  </div>
-                  <div className="h-px bg-border" />
-                  <div className="flex justify-between text-sm font-semibold">
-                    <span>Recipient gets</span>
-                    <span className="text-primary">Approx. NGN {((amountNum - fee) * DEMO_RATE).toLocaleString()}</span>
+
+                  <div className="p-3.5 rounded-xl bg-blue-50/50 flex items-start gap-2.5 border border-blue-100">
+                    <Icon icon="solar:info-circle-bold-duotone" className="w-4 h-4 text-blue-500 mt-0.5" />
+                    <p className="text-[10px] text-blue-800 leading-normal font-medium">
+                      Settlements are usually cleared within 15 minutes. Large amounts may require security review.
+                    </p>
                   </div>
                 </div>
-              ) : null}
+              )}
+            </div>
 
-              <div>
-                <label className="mb-1.5 block text-sm font-medium">Note (optional)</label>
-                <input
-                  value={note}
-                  onChange={(event) => setNote(event.target.value)}
-                  placeholder="e.g. July payout"
-                  className="input-base"
-                />
-              </div>
-
-              <div className="flex items-start gap-2 rounded-lg bg-blue-50 p-3 text-xs text-muted-foreground">
-                <Info className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-blue-500" />
-                Settlements typically arrive within 15 minutes during business hours.
-              </div>
-
-              <div className="flex flex-col-reverse gap-3 sm:flex-row">
-                <button onClick={() => setShowModal(false)} className="btn-secondary flex-1 justify-center">
-                  Cancel
-                </button>
-                <button
-                  onClick={() => mutation.mutate({ recipient_id: recipientId, amount_usd: amountNum, note })}
-                  disabled={mutation.isPending || !recipientId || !amountNum}
-                  className="btn-primary flex-1 justify-center"
+            {/* Footer */}
+            <div className="px-5 py-4 border-t border-border/40 bg-slate-50/50">
+              <div className="flex gap-2.5">
+                <button 
+                  type="button" 
+                  onClick={() => setPanelOpen(false)}
+                  className="flex-1 h-10 px-4 rounded-xl bg-white border border-border font-bold text-xs hover:bg-slate-50 transition-colors"
                 >
-                  {mutation.isPending ? "Processing..." : "Confirm Settlement"}
+                  {selectedSettlement ? "Close" : "Cancel"}
                 </button>
+                {!selectedSettlement && (
+                  <button 
+                    onClick={() => mutation.mutate({ recipient_id: recipientId, amount_usd: amountNum, note })}
+                    disabled={mutation.isPending || !recipientId || !amountNum}
+                    className="flex-[1.5] btn-primary justify-center h-10"
+                  >
+                    <Icon icon="solar:check-read-bold-duotone" className="w-4 h-4" />
+                    {mutation.isPending ? "Processing..." : "Confirm Settlement"}
+                  </button>
+                )}
               </div>
             </div>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }

@@ -1,4 +1,3 @@
-// feature/payment-links — compiled
 "use client";
 
 import { useEffect, useState } from "react";
@@ -11,18 +10,19 @@ import { useToast } from "@/components/ui/toaster";
 import { createPaymentLinkSchema } from "@/lib/validations";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useWatch } from "react-hook-form";
-import { Plus, Link2, Copy, ExternalLink, QrCode, X } from "lucide-react";
+import { Icon } from "@iconify/react";
 import type { CreatePaymentLinkInput } from "@/lib/validations";
 import { Currency, PaymentLink } from "@/types";
 import QRCode from "qrcode";
 import { AILinkGenerator } from "@/components/ai/ai-link-generator";
+import { cn } from "@/lib/utils";
 
 const CURRENCIES: Currency[] = ["USD", "EUR", "GBP", "NGN", "GHS", "KES", "ZAR"];
-const LOCAL_STORAGE_PAYMENT_LINKS_KEY = "bushapay_payment_links";
 
 export default function PaymentLinksPage() {
-  const [showModal, setShowModal] = useState(false);
-  const [activeQrLink, setActiveQrLink] = useState<PaymentLink | null>(null);
+  const [panelOpen, setPanelOpen] = useState(false);
+  const [selectedLink, setSelectedLink] = useState<PaymentLink | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -42,148 +42,139 @@ export default function PaymentLinksPage() {
     resolver: zodResolver(createPaymentLinkSchema),
     defaultValues: { currency: "USD", one_time: false, allow_customer_amount: false },
   });
-  const allowCustomerAmount = useWatch({
-    control,
-    name: "allow_customer_amount",
-  });
-  const qrLinkUrl = activeQrLink && typeof window !== "undefined"
-    ? `${window.location.origin}/pay/${activeQrLink.slug}`
+
+  const allowCustomerAmount = useWatch({ control, name: "allow_customer_amount" });
+
+  const qrLinkUrl = selectedLink && typeof window !== "undefined"
+    ? `${window.location.origin}/pay/${selectedLink.slug}`
     : "";
 
   const { data: qrCodeDataUrl = "" } = useQuery({
     queryKey: ["payment-link-qr", qrLinkUrl],
-    queryFn: () =>
-      QRCode.toDataURL(qrLinkUrl, {
-        margin: 1,
-        width: 280,
-      }),
+    queryFn: () => QRCode.toDataURL(qrLinkUrl, { margin: 1, width: 140 }),
     enabled: Boolean(qrLinkUrl),
   });
 
   useEffect(() => {
-    if (!allowCustomerAmount) {
-      return;
-    }
-
+    if (!allowCustomerAmount) return;
     setValue("amount", undefined);
   }, [allowCustomerAmount, setValue]);
 
+  const handleNew = () => {
+    setSelectedLink(null);
+    reset({ currency: "USD", one_time: false, allow_customer_amount: false, title: "", description: "" });
+    setPanelOpen(true);
+  };
+
+  const handleEdit = (link: PaymentLink) => {
+    setSelectedLink(link);
+    reset({
+      title: link.title,
+      description: link.description || "",
+      amount: link.amount,
+      currency: link.currency,
+      one_time: link.one_time,
+      allow_customer_amount: link.allow_customer_amount,
+      redirect_url: link.redirect_url || "",
+    });
+    setPanelOpen(true);
+  };
+
   const mutation = useMutation({
     mutationFn: createPaymentLink,
-    onSuccess: (newLink) => {
-      queryClient.setQueryData<PaymentLink[]>(["payment-links"], (current = []) => [
-        newLink,
-        ...current.filter((link) => link.id !== newLink.id),
-      ]);
-      const currentLinks = JSON.parse(
-        window.localStorage.getItem(LOCAL_STORAGE_PAYMENT_LINKS_KEY) || "[]"
-      ) as PaymentLink[];
-      window.localStorage.setItem(
-        LOCAL_STORAGE_PAYMENT_LINKS_KEY,
-        JSON.stringify([newLink, ...currentLinks.filter((link) => link.id !== newLink.id)])
-      );
-      toast({ title: "Payment link created!", variant: "success" });
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["payment-links"] });
+      toast({ title: "Link Created", description: "Your payment link is live.", variant: "success" });
+      setPanelOpen(false);
       reset();
-      setShowModal(false);
     },
     onError: (error) =>
       toast({
-        title: "Failed to create link",
-        description: error instanceof Error ? error.message : "Please try again.",
+        title: "Creation Failed",
+        description: error instanceof Error ? error.message : "Please check your inputs.",
         variant: "error",
       }),
   });
 
   const copyLink = (link: PaymentLink) => {
     navigator.clipboard.writeText(`${window.location.origin}/pay/${link.slug}`);
-    toast({ title: "Link copied!", description: "Payment link copied to clipboard" });
+    toast({ title: "Copied", description: "URL saved to clipboard" });
   };
 
+  const filteredLinks = links.filter(l => 
+    l.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    l.slug.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
-    <div>
+    <div className="relative min-h-screen">
       <Topbar
         title="Payment Links"
-        description="Create shareable links to collect payments"
+        description="Global collection points for your services"
         actions={
-          <button onClick={() => setShowModal(true)} className="btn-primary">
-            <Plus className="w-4 h-4" />
+          <button onClick={handleNew} className="btn-primary py-1.5 h-8">
+            <Icon icon="solar:add-circle-bold-duotone" className="w-4 h-4" />
             New Link
           </button>
         }
       />
 
-      <div className="p-4 sm:p-6">
+      <div className="p-4 sm:p-6 lg:p-8">
+        <div className="mb-5 flex items-center justify-between gap-3">
+          <div className="relative flex-1 max-w-sm">
+            <Icon icon="solar:magnifer-bold-duotone" className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Filter links..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="input-base pl-8 bg-card border-none shadow-sm h-9"
+            />
+          </div>
+        </div>
+
         {isLoading ? (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="card-glass p-5 animate-pulse">
-                <div className="h-4 bg-secondary rounded w-3/4 mb-3" />
-                <div className="h-3 bg-secondary rounded w-1/2" />
-              </div>
+          <div className="space-y-2">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="h-14 bg-card rounded-xl animate-pulse" />
             ))}
           </div>
+        ) : filteredLinks.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <Icon icon="solar:link-broken-bold-duotone" className="w-10 h-10 text-muted-foreground/30 mb-3" />
+            <h3 className="font-display font-bold text-sm text-slate-800">No links active</h3>
+            <p className="text-[10px] text-muted-foreground mt-0.5">Click 'New Link' to get started.</p>
+          </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {links.map((link) => (
-              <div key={link.id} className="card-glass p-5 hover:shadow-md transition-shadow">
-                <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
-                      <Link2 className="w-4 h-4" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="font-semibold text-sm break-words">{link.title}</p>
-                      <p className="text-xs text-muted-foreground">{formatDate(link.created_at)}</p>
-                    </div>
-                  </div>
-                  <StatusBadge status={link.status} />
+          <div className="space-y-1.5">
+            {filteredLinks.map((link) => (
+              <div
+                key={link.id}
+                onClick={() => handleEdit(link)}
+                className="group flex items-center gap-3 bg-card hover:bg-slate-50 p-2.5 rounded-xl transition-all cursor-pointer border border-transparent hover:border-border/40 shadow-sm"
+              >
+                <div className="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
+                  <Icon icon="solar:link-bold-duotone" className="w-4 h-4" />
                 </div>
-
-                {link.description && (
-                  <p className="text-xs text-muted-foreground mb-3 line-clamp-2">{link.description}</p>
-                )}
-
-                <div className="mb-4 flex flex-wrap items-center gap-4">
-                  <div>
-                    <p className="text-xs text-muted-foreground">Total Collected</p>
-                    <p className="font-bold text-sm">{formatCurrency(link.total_collected, link.currency)}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Payments</p>
-                    <p className="font-bold text-sm">{link.payment_count}</p>
-                  </div>
-                  {link.amount && (
-                    <div>
-                      <p className="text-xs text-muted-foreground">Amount</p>
-                      <p className="font-bold text-sm">{formatCurrency(link.amount, link.currency)}</p>
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex items-center gap-2 rounded-lg bg-secondary p-2.5">
-                  <p className="text-xs text-muted-foreground font-mono flex-1 truncate">
-                    /pay/{link.slug}
+                
+                <div className="min-w-0 flex-1">
+                  <h4 className="font-bold text-[11px] truncate text-slate-800">{link.title}</h4>
+                  <p className="text-[9px] text-muted-foreground mt-0.5 truncate uppercase tracking-wider font-bold">
+                    /{link.slug}
                   </p>
-                  <button
-                    onClick={() => copyLink(link)}
-                    className="p-1.5 hover:bg-card rounded transition-colors text-muted-foreground hover:text-foreground"
-                  >
-                    <Copy className="w-3.5 h-3.5" />
+                </div>
+
+                <div className="hidden sm:block text-right px-2">
+                  <p className="text-[11px] font-bold text-slate-800">
+                    {link.amount ? formatCurrency(link.amount, link.currency) : "Custom"}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
+                  <button onClick={() => copyLink(link)} className="p-1.5 hover:bg-secondary rounded-lg text-muted-foreground transition-colors">
+                    <Icon icon="solar:copy-bold-duotone" className="w-3.5 h-3.5" />
                   </button>
-                  <button
-                    onClick={() => setActiveQrLink(link)}
-                    className="p-1.5 hover:bg-card rounded transition-colors text-muted-foreground hover:text-foreground"
-                  >
-                    <QrCode className="w-3.5 h-3.5" />
-                  </button>
-                  <a
-                    href={`/pay/${link.slug}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="p-1.5 hover:bg-card rounded transition-colors text-muted-foreground hover:text-foreground"
-                  >
-                    <ExternalLink className="w-3.5 h-3.5" />
-                  </a>
+                  <Icon icon="solar:alt-arrow-right-bold-duotone" className="w-3.5 h-3.5 text-muted-foreground/20" />
                 </div>
               </div>
             ))}
@@ -191,152 +182,121 @@ export default function PaymentLinksPage() {
         )}
       </div>
 
-      {/* Create Modal */}
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-3 pt-6 sm:items-center sm:p-4">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowModal(false)} />
-          <div className="relative my-auto w-full max-w-md rounded-2xl bg-card p-4 shadow-xl animate-slide-in sm:p-6 max-h-[calc(100vh-2rem)] overflow-y-auto">
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="font-display font-bold text-xl">Create Payment Link</h2>
-              <button onClick={() => setShowModal(false)} className="p-1.5 hover:bg-secondary rounded-lg">
-                <X className="w-4 h-4" />
+      {/* Side Panel Drawer - More Modern & Compact */}
+      <div 
+        className={cn(
+          "fixed inset-0 z-50 transition-opacity duration-300",
+          panelOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+        )}
+      >
+        <div className="absolute inset-0 bg-slate-900/10 backdrop-blur-[2px]" onClick={() => setPanelOpen(false)} />
+        
+        <div 
+          className={cn(
+            "absolute right-0 top-0 h-full w-full max-w-md bg-card shadow-2xl transition-transform duration-300 ease-out transform border-l border-border/40",
+            panelOpen ? "translate-x-0" : "translate-x-full"
+          )}
+        >
+          <div className="flex flex-col h-full">
+            <div className="flex items-center justify-between px-6 py-5 border-b border-border/40 bg-slate-50/30">
+              <div>
+                <h2 className="font-display font-bold text-base text-slate-900 leading-none">
+                  {selectedLink ? "Payment Detail" : "New Collection Link"}
+                </h2>
+                <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mt-1.5">
+                  powered by ejima
+                </p>
+              </div>
+              <button 
+                onClick={() => setPanelOpen(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-secondary transition-colors"
+              >
+                <Icon icon="solar:close-circle-bold-duotone" className="w-5 h-5 text-muted-foreground" />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit((d) => mutation.mutate(d))} className="space-y-4">
-              <AILinkGenerator setValue={setValue} />
-
-              <div>
-                <label className="text-sm font-medium block mb-1.5">Title *</label>
-                <input {...register("title")} placeholder="e.g. Logo Design Package" className="input-base" />
-                {errors.title && <p className="text-xs text-red-500 mt-1">{errors.title.message}</p>}
-              </div>
-
-              <div>
-                <label className="text-sm font-medium block mb-1.5">Description</label>
-                <textarea {...register("description")} placeholder="What are you getting paid for?" rows={2} className="input-base resize-none" />
-              </div>
-
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <div>
-                  <label className="text-sm font-medium block mb-1.5">Amount (optional)</label>
-                  <input
-                    {...register("amount")}
-                    type="number"
-                    step="0.01"
-                    placeholder="0.00"
-                    disabled={allowCustomerAmount}
-                    className="input-base disabled:bg-secondary disabled:text-muted-foreground"
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">Leave blank to let payer choose</p>
-                  {errors.amount && <p className="text-xs text-red-500 mt-1">{errors.amount.message}</p>}
+            <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
+              {selectedLink && (
+                <div className="p-5 rounded-2xl bg-slate-900 text-white flex items-center gap-4 relative overflow-hidden shadow-lg">
+                  <div className="absolute top-0 right-0 w-20 h-full bg-primary/10 -skew-x-12 translate-x-10" />
+                  <div className="bg-white p-1.5 rounded-lg shadow-sm shrink-0">
+                    {qrCodeDataUrl ? (
+                      <img src={qrCodeDataUrl} alt="QR" className="w-20 h-20" />
+                    ) : (
+                      <div className="w-20 h-20 bg-secondary animate-pulse" />
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <h5 className="text-[11px] font-bold text-primary uppercase tracking-[0.2em] mb-1">Payer Entry</h5>
+                    <p className="text-[10px] text-white/60 leading-normal mb-2 truncate">fluent.pay/{selectedLink.slug}</p>
+                    <button onClick={() => copyLink(selectedLink)} className="text-[9px] font-bold py-1 px-3 rounded-lg bg-white/10 hover:bg-white/20 transition-all flex items-center gap-1.5 uppercase">
+                      <Icon icon="solar:copy-bold-duotone" className="w-3 h-3 text-primary" />
+                      Copy Link
+                    </button>
+                  </div>
                 </div>
-                <div>
-                  <label className="text-sm font-medium block mb-1.5">Currency</label>
-                  <select {...register("currency")} className="input-base bg-background">
-                    {CURRENCIES.map((c) => <option key={c} value={c}>{c}</option>)}
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <div className="rounded-xl border border-dashed border-border bg-secondary/40 px-3 py-3 text-sm text-muted-foreground sm:col-span-2">
-                  The payer will choose how to pay at checkout, for example USDT, BTC, NGN, USD, or KES.
-                </div>
-                <label className="flex items-center gap-2 text-sm">
-                  <input type="checkbox" {...register("one_time")} className="accent-primary" />
-                  <span>One-time link</span>
-                </label>
-              </div>
-
-              <label className="flex items-center gap-2 text-sm">
-                <input type="checkbox" {...register("allow_customer_amount")} className="accent-primary" />
-                <span>Allow customer-defined amount</span>
-              </label>
-
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <div>
-                  <label className="text-sm font-medium block mb-1.5">Min Amount</label>
-                  <input {...register("min_amount")} type="number" step="0.01" placeholder="0.00" className="input-base" />
-                  {errors.min_amount && <p className="text-xs text-red-500 mt-1">{errors.min_amount.message}</p>}
-                </div>
-                <div>
-                  <label className="text-sm font-medium block mb-1.5">Max Amount</label>
-                  <input {...register("max_amount")} type="number" step="0.01" placeholder="0.00" className="input-base" />
-                  {errors.max_amount && <p className="text-xs text-red-500 mt-1">{errors.max_amount.message}</p>}
-                </div>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium block mb-1.5">Redirect URL (optional)</label>
-                <input {...register("redirect_url")} type="url" placeholder="https://yourdomain.com/thank-you" className="input-base" />
-              </div>
-
-              <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row">
-                <button type="button" onClick={() => setShowModal(false)} className="btn-secondary flex-1">
-                  Cancel
-                </button>
-                <button type="submit" disabled={mutation.isPending} className="btn-primary flex-1 justify-center">
-                  {mutation.isPending ? "Creating…" : "Create Link"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {activeQrLink && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setActiveQrLink(null)} />
-          <div className="relative w-full max-w-sm rounded-3xl bg-card p-6 shadow-xl">
-            <div className="mb-5 flex items-center justify-between">
-              <div>
-                <h2 className="font-display text-xl font-bold">Scan To Pay</h2>
-                <p className="mt-1 text-sm text-muted-foreground">{activeQrLink.title}</p>
-              </div>
-              <button onClick={() => setActiveQrLink(null)} className="p-1.5 hover:bg-secondary rounded-lg">
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="rounded-2xl border border-border bg-white p-4">
-              {qrCodeDataUrl ? (
-                <img src={qrCodeDataUrl} alt="Payment link QR code" className="mx-auto h-64 w-64" />
-              ) : (
-                <div className="flex h-64 items-center justify-center text-sm text-muted-foreground">Generating QR…</div>
               )}
+
+              <form 
+                onSubmit={handleSubmit((d) => mutation.mutate(d))} 
+                id="link-form-actual" 
+                className="space-y-6 pb-8"
+              >
+                {!selectedLink && <AILinkGenerator setValue={setValue} />}
+
+                <div className="space-y-4">
+                  <h6 className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.2em]">Context</h6>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-[10px] font-bold block mb-1 text-slate-500 uppercase">Service Title</label>
+                      <input {...register("title")} placeholder="e.g. Creative Consulting" className="input-base h-10 font-bold text-slate-800" />
+                      {errors.title && <p className="text-[9px] text-red-500 mt-1 font-bold">{errors.title.message}</p>}
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold block mb-1 text-slate-500 uppercase">Brief Description</label>
+                      <textarea {...register("description")} rows={2} className="input-base resize-none py-2 font-medium" />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4 pt-4 border-t border-border/40">
+                  <h6 className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.2em]">Financials</h6>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-[10px] font-bold block mb-1 text-slate-500 uppercase">Fixed Amt</label>
+                      <input {...register("amount")} type="number" step="0.01" disabled={allowCustomerAmount} className="input-base h-10 font-bold disabled:opacity-40" />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold block mb-1 text-slate-500 uppercase">Currency</label>
+                      <select {...register("currency")} className="input-base h-10 font-bold bg-background">
+                        {CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                  <label className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-secondary/50 transition-all cursor-pointer group">
+                    <input type="checkbox" {...register("allow_customer_amount")} className="w-3.5 h-3.5 rounded accent-primary" />
+                    <span className="text-[10px] font-bold text-slate-600 uppercase group-hover:text-slate-900 transition-colors">Client chooses amount</span>
+                  </label>
+                </div>
+              </form>
             </div>
 
-            <div className="mt-4 rounded-2xl bg-secondary p-4">
-              <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Payment Code</p>
-              <p className="mt-2 font-mono text-sm font-medium text-busha-slate">{activeQrLink.slug}</p>
-              <p className="mt-2 text-xs text-muted-foreground">
-                Share this QR code or short payment code so a client can open the checkout quickly.
-              </p>
-            </div>
-
-            <div className="mt-4 flex gap-3">
-              <button
-                type="button"
-                onClick={() => copyLink(activeQrLink)}
-                className="btn-secondary flex-1 justify-center"
-              >
-                <Copy className="h-4 w-4" />
-                Copy Link
-              </button>
-              <a
-                href={`/pay/${activeQrLink.slug}`}
-                target="_blank"
-                rel="noreferrer"
-                className="btn-primary flex-1 justify-center"
-              >
-                <ExternalLink className="h-4 w-4" />
-                Open
-              </a>
+            <div className="px-6 py-5 border-t border-border/40 bg-slate-50/50 flex gap-2">
+                <button type="button" onClick={() => setPanelOpen(false)} className="flex-1 h-10 rounded-xl bg-white border border-border font-bold text-[10px] uppercase tracking-widest hover:bg-slate-50 transition-colors">
+                  Discard
+                </button>
+                <button 
+                  type="submit"
+                  form="link-form-actual"
+                  disabled={mutation.isPending}
+                  className="flex-[1.5] btn-primary justify-center h-10 text-[10px] uppercase tracking-[0.15em]"
+                >
+                  {mutation.isPending ? "Syncing..." : selectedLink ? "Update Link" : "Activate Link"}
+                </button>
             </div>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }

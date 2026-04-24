@@ -1,9 +1,10 @@
 "use client";
 
-import { Bell, PanelLeft, TestTube2 } from "lucide-react";
+import { Icon } from "@iconify/react";
 import { useAppStore } from "@/lib/store/app.store";
 import { formatCurrency } from "@/lib/utils";
 import { DEMO_ACCOUNT } from "@/lib/api/demo-data";
+import { cn } from "@/lib/utils";
 
 interface TopbarProps {
   title: string;
@@ -15,50 +16,60 @@ export function Topbar({ title, description, actions }: TopbarProps) {
   const { isDemoMode, toggleMobileSidebar } = useAppStore();
 
   return (
-    <>
+    <div className="sticky top-0 z-30 w-full">
       {isDemoMode ? (
-        <div className="demo-banner flex-wrap gap-y-1">
-          <TestTube2 className="h-4 w-4" />
-          <span>You&apos;re viewing demo data. No real transactions are shown.</span>
-          <span className="font-semibold sm:ml-auto">Demo Balance: {formatCurrency(DEMO_ACCOUNT.balance_usd)}</span>
+        <div className="flex items-center gap-2 bg-slate-900 px-6 py-1.5 text-[9px] font-bold uppercase tracking-[0.15em] text-white/40">
+          <Icon icon="solar:test-tube-bold-duotone" className="h-3 w-3 text-amber-500" />
+          <span>Demo Mode • Simulation</span>
+          <span className="ml-auto text-primary opacity-80">System Ready</span>
         </div>
       ) : null}
 
-      <div className="sticky top-0 z-30 px-3 pt-3 sm:px-6 sm:pt-4">
-        <header className="rounded-2xl border border-border/80 bg-card/95 px-4 py-3 shadow-sm shadow-slate-200/60 backdrop-blur sm:px-5">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex min-w-0 items-start gap-3">
-              <button
-                type="button"
-                onClick={toggleMobileSidebar}
-                className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border border-border bg-background text-muted-foreground transition-colors hover:bg-secondary md:hidden"
-                aria-label="Open navigation"
-              >
-                <PanelLeft className="h-4 w-4" />
-              </button>
-              <div className="min-w-0">
-                <h1 className="truncate font-display text-lg font-semibold leading-tight text-busha-slate sm:text-xl">
-                  {title}
-                </h1>
-                {description ? (
-                  <p className="mt-1 text-xs leading-5 text-muted-foreground sm:text-sm">{description}</p>
-                ) : null}
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 sm:flex-shrink-0">
-              <div className="min-w-0 flex-1 sm:flex-none">{actions}</div>
-              <button
-                type="button"
-                className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border border-border/70 bg-background text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-                aria-label="Notifications"
-              >
-                <Bell className="h-4 w-4" />
-              </button>
+      <header className="border-b border-border/50 bg-background/80 px-4 py-3 backdrop-blur-xl transition-all sm:px-8">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex min-w-0 items-center gap-3">
+            <button
+              type="button"
+              onClick={toggleMobileSidebar}
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary text-muted-foreground transition-all hover:bg-muted hover:text-foreground md:hidden"
+            >
+              <Icon icon="solar:hamburger-menu-bold-duotone" className="h-5 w-5" />
+            </button>
+            
+            <div className="min-w-0">
+              <h1 className="truncate font-display text-lg font-bold tracking-tight text-slate-900 sm:text-xl">
+                {title}
+              </h1>
+              {description && (
+                <p className="hidden truncate text-[10px] font-bold text-muted-foreground uppercase tracking-wider sm:block opacity-60">
+                  {description}
+                </p>
+              )}
             </div>
           </div>
-        </header>
-      </div>
-    </>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <div className="hidden items-center gap-2 sm:flex mr-1">
+               {actions}
+            </div>
+            
+            <button
+              type="button"
+              className="group relative flex h-9 w-9 items-center justify-center rounded-lg bg-secondary transition-all hover:bg-muted"
+            >
+              <Icon icon="solar:bell-bing-bold-duotone" className="h-4.5 w-4.5 text-muted-foreground group-hover:text-primary transition-colors" />
+              <span className="absolute right-2.5 top-2.5 flex h-1.5 w-1.5">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
+                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-primary" />
+              </span>
+            </button>
+
+            <div className="sm:hidden">
+               {actions}
+            </div>
+          </div>
+        </div>
+      </header>
+    </div>
   );
 }

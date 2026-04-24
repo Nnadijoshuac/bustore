@@ -1,92 +1,95 @@
 "use client";
 
 import { useState } from "react";
-import { Sparkles, ChevronDown, ChevronUp, Loader2 } from "lucide-react";
-import type { UseFormSetValue } from "react-hook-form";
+import { Icon } from "@iconify/react";
+import { UseFormSetValue } from "react-hook-form";
 import type { CreatePaymentLinkInput } from "@/lib/validations";
+import { cn } from "@/lib/utils";
 
-interface Props {
+interface AILinkGeneratorProps {
   setValue: UseFormSetValue<CreatePaymentLinkInput>;
 }
 
-export function AILinkGenerator({ setValue }: Props) {
-  const [expanded, setExpanded] = useState(false);
+export function AILinkGenerator({ setValue }: AILinkGeneratorProps) {
   const [prompt, setPrompt] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [isGenerating, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [generated, setGenerated] = useState(false);
 
-  const generate = async () => {
-    if (!prompt.trim() || loading) return;
-    setLoading(true);
+  const handleGenerate = async () => {
+    if (!prompt.trim() || isGenerating) return;
+
+    setIsLoading(true);
     setError(null);
-    setGenerated(false);
+
     try {
-      const res = await fetch("/api/ai/generate-link", {
+      const response = await fetch("/api/ai/generate-link", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ prompt }),
       });
-      const data = (await res.json()) as { title?: string; description?: string; error?: string };
-      if (!res.ok || !data.title || !data.description) {
-        throw new Error(data.error ?? "Failed to generate");
-      }
-      setValue("title", data.title, { shouldValidate: true });
-      setValue("description", data.description, { shouldValidate: true });
+
+      if (!response.ok) throw new Error("Failed to generate content");
+
+      const data = await response.json();
+      setValue("title", data.title);
+      setValue("description", data.description);
       setGenerated(true);
-      setExpanded(false);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Something went wrong");
+    } catch (err) {
+      setError("AI was unable to generate content. Please try manual entry.");
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="overflow-hidden rounded-xl border border-primary/25 bg-primary/5">
+    <div className="space-y-3 rounded-2xl bg-slate-900 p-4 text-white shadow-xl relative overflow-hidden group">
+      <div className="absolute top-0 right-0 w-24 h-24 bg-primary opacity-5 rounded-full translate-x-1/2 -translate-y-1/2 blur-2xl group-hover:opacity-10 transition-opacity" />
+      
+      <div className="flex items-center gap-2">
+        <Icon icon="solar:magic-stick-3-bold-duotone" className="h-4 w-4 text-primary" />
+        <div className="flex flex-col">
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/70 leading-none">
+            {generated ? "Draft Perfected" : "AI Content Studio"}
+          </p>
+          <p className="text-[8px] font-bold text-white/30 uppercase tracking-widest mt-1">powered by ejima</p>
+        </div>
+      </div>
+
+      <div className="relative">
+        <textarea
+          value={prompt}
+          onChange={(e) => setPrompt(e.target.value)}
+          placeholder="Describe your service (e.g. logo design for a tech startup)..."
+          rows={2}
+          className="w-full rounded-xl border-none bg-white/5 p-3 text-xs text-white placeholder:text-white/30 focus:ring-1 focus:ring-primary/50 resize-none font-medium leading-relaxed"
+        />
+      </div>
+
+      {error && <p className="text-[10px] text-red-400 font-bold uppercase tracking-wider">{error}</p>}
+
       <button
         type="button"
-        onClick={() => setExpanded((v) => !v)}
-        className="flex w-full items-center justify-between px-3.5 py-2.5 transition-colors hover:bg-primary/10"
-      >
-        <span className="flex items-center gap-2 text-sm font-medium text-primary">
-          <Sparkles className="h-3.5 w-3.5" />
-          {generated ? "✓ Fields filled — edit freely above" : "Generate content with AI"}
-        </span>
-        {expanded ? (
-          <ChevronUp className="h-3.5 w-3.5 text-primary" />
-        ) : (
-          <ChevronDown className="h-3.5 w-3.5 text-primary" />
+        onClick={handleGenerate}
+        disabled={!prompt.trim() || isGenerating}
+        className={cn(
+          "flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2 text-[10px] font-bold uppercase tracking-[0.1em] transition-all",
+          generated 
+            ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" 
+            : "bg-primary text-slate-900 hover:scale-[1.02] active:scale-[0.98]"
         )}
+      >
+        {isGenerating ? (
+          <Icon icon="solar:restart-bold-duotone" className="h-4 w-4 animate-spin" />
+        ) : (
+          <Icon icon={generated ? "solar:check-circle-bold-duotone" : "solar:wand-magic-bold-duotone"} className="h-4 w-4" />
+        )}
+        {isGenerating ? "Polishing..." : generated ? "Fields Re-filled" : "Generate content"}
       </button>
-
-      {expanded && (
-        <div className="space-y-3 border-t border-primary/15 px-3.5 pb-3.5 pt-3">
-          <p className="text-xs text-muted-foreground">
-            Describe what you&apos;re being paid for — AI will write a polished title and description.
-          </p>
-          <textarea
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) generate(); }}
-            placeholder="e.g. mobile app UI, 5 screens, 2 rounds of revisions"
-            rows={2}
-            className="input-base resize-none text-sm"
-          />
-          {error && <p className="text-xs text-red-500">{error}</p>}
-          <button
-            type="button"
-            onClick={generate}
-            disabled={!prompt.trim() || loading}
-            className="btn-primary w-full justify-center py-2 text-sm disabled:opacity-50"
-          >
-            {loading ? (
-              <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Generating…</>
-            ) : (
-              <><Sparkles className="h-3.5 w-3.5" /> Generate</>
-            )}
-          </button>
-        </div>
+      
+      {!generated && (
+        <p className="text-[9px] text-center text-white/40 font-medium">
+          Our AI will draft a professional title and description for you.
+        </p>
       )}
     </div>
   );
