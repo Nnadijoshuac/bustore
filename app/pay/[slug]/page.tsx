@@ -8,7 +8,17 @@ import QRCode from "qrcode";
 import type { PaymentLink, PaymentRequest } from "@/types";
 import { createPaymentRequest, getPaymentRequest } from "@/lib/api/service";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import { CreditCard, Lock, Globe, Copy, CheckCircle2, Clock3 } from "lucide-react";
+import {
+  CheckCircle2,
+  Clock3,
+  Copy,
+  CreditCard,
+  FileText,
+  Globe,
+  Lock,
+  Receipt,
+  ShieldCheck,
+} from "lucide-react";
 
 const LOCAL_STORAGE_PAYMENT_LINKS_KEY = "bushapay_payment_links";
 const PAYMENT_METHOD_OPTIONS = [
@@ -69,9 +79,7 @@ export default function PublicPaymentPage() {
   });
 
   const requestId = paymentRequestMutation.data?.id;
-  const {
-    data: paymentRequest,
-  } = useQuery({
+  const { data: paymentRequest } = useQuery({
     queryKey: ["payment-request", requestId],
     queryFn: () => getPaymentRequest(requestId!),
     enabled: Boolean(requestId),
@@ -113,8 +121,8 @@ export default function PublicPaymentPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/30 flex items-center justify-center p-4">
-        <div className="bg-white rounded-3xl shadow-xl p-8 max-w-md w-full text-center">
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 via-white to-emerald-50/30 p-4">
+        <div className="w-full max-w-md rounded-3xl bg-white p-8 text-center shadow-xl">
           <p className="text-sm text-muted-foreground">Loading payment link...</p>
         </div>
       </div>
@@ -123,9 +131,9 @@ export default function PublicPaymentPage() {
 
   if (!link) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/30 flex items-center justify-center p-4">
-        <div className="bg-white rounded-3xl shadow-xl p-8 max-w-md w-full text-center">
-          <h1 className="font-display font-bold text-xl mb-2">Payment link unavailable</h1>
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 via-white to-emerald-50/30 p-4">
+        <div className="w-full max-w-md rounded-3xl bg-white p-8 text-center shadow-xl">
+          <h1 className="mb-2 font-display text-xl font-bold">Payment link unavailable</h1>
           <p className="text-sm text-muted-foreground">
             {error instanceof Error ? error.message : "The payment link could not be loaded."}
           </p>
@@ -152,9 +160,9 @@ export default function PublicPaymentPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/30 px-3 py-6 sm:p-4">
-      <div className="mx-auto flex w-full max-w-lg flex-col justify-center">
-        <div className="mb-5 flex items-center justify-center gap-2 sm:mb-6">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(16,185,129,0.16),_transparent_24%),linear-gradient(180deg,_#f5f8fb_0%,_#edf4f1_52%,_#f9fbfc_100%)] px-3 py-6 sm:p-4">
+      <div className="mx-auto flex w-full max-w-5xl flex-col justify-center">
+        <div className="mb-6 flex items-center justify-center gap-3 sm:mb-8">
           <Image
             src="/logo_fluent.png"
             alt="Fluent logo"
@@ -164,245 +172,353 @@ export default function PublicPaymentPage() {
             sizes="148px"
             className="h-12 w-auto object-contain"
           />
-          <span className="font-display text-lg font-bold sm:text-xl">Fluent</span>
+          <div>
+            <span className="font-display text-lg font-bold sm:text-xl">Fluent</span>
+            <p className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">Invoice Desk</p>
+          </div>
         </div>
 
-        <div className="bg-white rounded-3xl shadow-xl overflow-hidden">
-          <div className="bg-gradient-to-br from-busha-slate to-busha-slate-mid p-5 text-white sm:p-6">
-            <p className="text-white/60 text-sm mb-1">Pay to</p>
-            <h1 className="mb-0.5 break-words font-display text-2xl font-bold sm:text-3xl">{link.title}</h1>
-            {link.description && <p className="break-words text-sm text-white/70">{link.description}</p>}
-            {link.amount && (
-              <div className="mt-4 inline-flex flex-wrap items-baseline gap-1">
-                <span className="text-white/60 text-sm">{link.currency}</span>
-                <span className="font-display text-3xl font-bold sm:text-4xl">{link.amount.toLocaleString()}</span>
-              </div>
-            )}
-
-            <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1.5 text-xs text-white/75">
-              Payment code
-              <span className="font-mono text-white">{link.slug}</span>
-            </div>
-          </div>
-
-          {!paymentRequest ? (
-            <form
-              className="space-y-4 p-4 sm:p-6"
-              onSubmit={(event) => {
-                event.preventDefault();
-                handlePay();
-              }}
-            >
-              {!link.amount && (
+        <div className="overflow-hidden rounded-[2rem] border border-white/80 bg-white/90 shadow-[0_28px_80px_rgba(15,23,42,0.08)] backdrop-blur">
+          <div className="grid lg:grid-cols-[minmax(0,1.05fr)_minmax(360px,0.95fr)]">
+            <section className="border-b border-border/40 p-5 sm:p-8 lg:border-b-0 lg:border-r">
+              <div className="flex items-start justify-between gap-4">
                 <div>
-                  <label className="text-sm font-medium block mb-1.5">Amount ({link.currency})</label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-sm">
-                      {link.currency === "USD" ? "$" : link.currency === "NGN" ? "N" : link.currency}
-                    </span>
-                    <input
-                      type="number"
-                      value={amount}
-                      onChange={(event) => setAmount(event.target.value)}
-                      placeholder="0.00"
-                      className="input-base pl-8"
-                    />
+                  <div className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-primary">
+                    <FileText className="h-3.5 w-3.5" />
+                    Invoice
                   </div>
-                </div>
-              )}
-
-              <div>
-                <label className="text-sm font-medium block mb-1.5">Your Name</label>
-                <input value={name} onChange={(event) => setName(event.target.value)} placeholder="John Doe" className="input-base" />
-              </div>
-
-              <div>
-                <label className="text-sm font-medium block mb-1.5">Email Address</label>
-                <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@email.com" className="input-base" />
-              </div>
-
-              <div>
-                <label className="text-sm font-medium block mb-2">How would you like to pay?</label>
-                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                  {PAYMENT_METHOD_OPTIONS.map((option) => (
-                    <button
-                      key={option.value}
-                      type="button"
-                      onClick={() => setSelectedPaymentMethod(option.value)}
-                      className={`rounded-2xl border px-4 py-3 text-left transition-colors ${
-                        paymentMethod === option.value
-                          ? "border-primary bg-primary/5 shadow-sm"
-                          : "border-border bg-card hover:border-primary/40"
-                      }`}
-                    >
-                      <p className="font-medium text-busha-slate">{option.label}</p>
-                      <p className="mt-1 text-xs text-muted-foreground">{option.description}</p>
-                    </button>
-                  ))}
-                </div>
-                <p className="mt-2 text-xs text-muted-foreground">
-                  Choose the rail that is easiest for you. Fluent will generate the matching Busha payment instructions.
-                </p>
-              </div>
-
-              <div className="p-3 bg-secondary rounded-xl flex items-center gap-2">
-                <Globe className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                <p className="text-xs text-muted-foreground">
-                  Busha will generate live payment instructions for this invoice, whether that is a wallet address or
-                  bank collection details.
-                </p>
-              </div>
-
-              {paymentRequestMutation.error && (
-                <div className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
-                  {paymentRequestMutation.error instanceof Error
-                    ? paymentRequestMutation.error.message
-                    : "Unable to create payment request."}
-                </div>
-              )}
-
-              <button
-                type="submit"
-                disabled={paymentRequestMutation.isPending || !name || !email || !paymentAmount}
-                className="btn-primary w-full justify-center py-3 text-base rounded-xl"
-              >
-                {paymentRequestMutation.isPending ? (
-                  <span className="flex items-center gap-2">
-                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Creating request...
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-2">
-                    <CreditCard className="w-4 h-4" />
-                    Pay {paymentAmount ? formatCurrency(parseFloat(paymentAmount), link.currency) : "Now"}
-                  </span>
-                )}
-              </button>
-
-              <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
-                <Lock className="w-3 h-3" />
-                Secured by Fluent · 256-bit encryption
-              </div>
-            </form>
-          ) : (
-            <div className="space-y-4 p-4 sm:p-6">
-              <div
-                className={`rounded-2xl border p-4 ${
-                  paymentRequest.status === "completed"
-                    ? "bg-emerald-50 border-emerald-200"
-                    : "bg-amber-50 border-amber-200"
-                }`}
-              >
-                <div
-                  className={`flex items-center gap-2 mb-2 ${
-                    paymentRequest.status === "completed" ? "text-emerald-700" : "text-amber-700"
-                  }`}
-                >
-                  {paymentRequest.status === "completed" ? (
-                    <CheckCircle2 className="w-4 h-4" />
-                  ) : (
-                    <Clock3 className="w-4 h-4" />
-                  )}
-                  <span className="text-sm font-medium capitalize">{paymentRequest.status}</span>
-                </div>
-                <p className="text-sm text-slate-800">
-                  {paymentRequest.status === "completed"
-                    ? "Payment confirmed by Busha."
-                    : `Send exactly ${paymentRequest.source_amount} ${paymentRequest.source_currency} using the instructions below.`}
-                </p>
-              </div>
-
-              {isCryptoPayment && qrCodeUrl && (
-                <div className="flex justify-center rounded-2xl border border-border bg-white p-4">
-                  <Image
-                    src={qrCodeUrl}
-                    alt="Payment address QR code"
-                    width={220}
-                    height={220}
-                    unoptimized
-                    className="h-full w-full max-w-[220px]"
-                  />
-                </div>
-              )}
-
-              <div>
-                <p className="text-xs text-muted-foreground mb-1">Network</p>
-                <p className="font-semibold">
-                  {paymentRequest.pay_in?.network ||
-                    paymentRequest.pay_in?.provider ||
-                    paymentRequest.target_currency}
-                </p>
-              </div>
-
-              <div>
-                <p className="text-xs text-muted-foreground mb-1">{payInLabel}</p>
-                <div className="rounded-xl bg-secondary p-3 font-mono text-xs break-all">
-                  {payInValue || "Busha will provide this detail shortly."}
-                </div>
-              </div>
-
-              {!isCryptoPayment && (
-                <div className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
-                  {paymentRequest.pay_in?.bank_name ? (
-                    <div className="rounded-xl bg-secondary p-3">
-                      <p className="text-xs text-muted-foreground mb-1">Bank</p>
-                      <p className="font-semibold">{paymentRequest.pay_in.bank_name}</p>
-                    </div>
-                  ) : null}
-                  {paymentRequest.pay_in?.account_name ? (
-                    <div className="rounded-xl bg-secondary p-3">
-                      <p className="text-xs text-muted-foreground mb-1">Account Name</p>
-                      <p className="font-semibold">{paymentRequest.pay_in.account_name}</p>
-                    </div>
-                  ) : null}
-                  {paymentRequest.pay_in?.phone_number ? (
-                    <div className="rounded-xl bg-secondary p-3">
-                      <p className="text-xs text-muted-foreground mb-1">Phone Number</p>
-                      <p className="font-semibold">{paymentRequest.pay_in.phone_number}</p>
-                    </div>
-                  ) : null}
-                </div>
-              )}
-
-              <button onClick={() => copyAddress(paymentRequest)} className="btn-secondary w-full justify-center">
-                <Copy className="w-4 h-4" />
-                {copied ? "Copied" : `Copy ${isCryptoPayment ? "Address" : "Account"}`}
-              </button>
-
-              <div className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
-                <div className="rounded-xl bg-secondary p-3">
-                  <p className="text-xs text-muted-foreground mb-1">Amount</p>
-                  <p className="font-semibold">
-                    {paymentRequest.source_amount} {paymentRequest.source_currency}
+                  <h1 className="mt-5 break-words font-display text-3xl font-bold tracking-[-0.04em] text-busha-slate sm:text-4xl">
+                    {link.title}
+                  </h1>
+                  <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-600">
+                    {link.description || "Professional services rendered and payable through Fluent's Busha-backed collection flow."}
                   </p>
                 </div>
-                <div className="rounded-xl bg-secondary p-3">
-                  <p className="text-xs text-muted-foreground mb-1">Reference</p>
-                  <p className="font-semibold break-all">{paymentRequest.reference}</p>
+
+                <div className="rounded-2xl border border-border/50 bg-slate-50 px-4 py-3 text-right shadow-sm">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-muted-foreground">Invoice ID</p>
+                  <p className="mt-1 font-mono text-sm font-semibold text-slate-800">{link.slug}</p>
                 </div>
               </div>
 
-              {paymentRequest.pay_in?.expires_at && (
-                <p className="text-xs text-muted-foreground">
-                  Address expires {formatDate(paymentRequest.pay_in.expires_at)}
-                </p>
-              )}
-
-              {paymentRequest.timeline?.events?.length ? (
-                <div className="space-y-2 pt-2">
-                  {paymentRequest.timeline.events.map((event) => (
-                    <div key={`${event.step}-${event.status}`} className="rounded-xl bg-secondary p-3">
-                      <div className="flex items-center justify-between gap-3">
-                        <p className="text-sm font-medium">{event.title}</p>
-                        <span className="text-xs uppercase text-muted-foreground">{event.status}</span>
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-1">{event.description}</p>
-                    </div>
-                  ))}
+              <div className="mt-8 grid gap-4 sm:grid-cols-3">
+                <div className="rounded-2xl border border-border/50 bg-slate-50 p-4">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Issued Through</p>
+                  <p className="mt-2 text-sm font-semibold text-slate-900">Fluent Collections</p>
                 </div>
-              ) : null}
-            </div>
-          )}
+                <div className="rounded-2xl border border-border/50 bg-slate-50 p-4">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Collection Rail</p>
+                  <p className="mt-2 text-sm font-semibold text-slate-900">Busha Payment Request</p>
+                </div>
+                <div className="rounded-2xl border border-border/50 bg-slate-50 p-4">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Created</p>
+                  <p className="mt-2 text-sm font-semibold text-slate-900">{formatDate(link.created_at)}</p>
+                </div>
+              </div>
+
+              <div className="mt-8 overflow-hidden rounded-[1.5rem] border border-border/50">
+                <div className="grid grid-cols-[minmax(0,1fr)_auto] border-b border-border/50 bg-slate-100/70 px-4 py-3 text-[10px] font-bold uppercase tracking-[0.22em] text-muted-foreground sm:px-5">
+                  <span>Line Item</span>
+                  <span>Amount</span>
+                </div>
+                <div className="grid grid-cols-[minmax(0,1fr)_auto] px-4 py-5 sm:px-5">
+                  <div className="pr-4">
+                    <p className="text-sm font-semibold text-slate-900">{link.title}</p>
+                    <p className="mt-1 text-sm leading-6 text-slate-600">
+                      {link.description || "One-time invoice issued for client settlement through Fluent."}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">{link.currency}</p>
+                    <p className="mt-1 font-display text-2xl font-bold text-slate-900">
+                      {link.amount?.toLocaleString() || paymentAmount || "Custom"}
+                    </p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-[minmax(0,1fr)_auto] border-t border-border/50 bg-slate-50 px-4 py-4 sm:px-5">
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Amount Due</p>
+                    <p className="mt-1 text-sm text-slate-600">Inclusive of live payment instructions generated at checkout.</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">{link.currency}</p>
+                    <p className="mt-1 font-display text-3xl font-bold text-busha-slate">
+                      {link.amount?.toLocaleString() || paymentAmount || "Open"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6 flex items-start gap-3 rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4 text-sm text-slate-700">
+                <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
+                <div>
+                  <p className="font-semibold text-slate-900">Verified collection flow</p>
+                  <p className="mt-1 leading-6">
+                    Payment instructions are issued only when checkout begins, keeping this invoice current, secure, and reference-safe.
+                  </p>
+                </div>
+              </div>
+            </section>
+
+            <section className="bg-[linear-gradient(180deg,_#0f172a_0%,_#111f2f_100%)] p-5 text-white sm:p-8">
+              {!paymentRequest ? (
+                <form
+                  className="space-y-5"
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    handlePay();
+                  }}
+                >
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-white/80">
+                        <Receipt className="h-3.5 w-3.5 text-primary" />
+                        Checkout
+                      </div>
+                      <h2 className="mt-4 font-display text-2xl font-bold tracking-tight">Review and pay invoice</h2>
+                      <p className="mt-2 text-sm leading-6 text-white/65">
+                        Choose a rail, confirm payer details, and Fluent will create a live Busha request.
+                      </p>
+                    </div>
+                    <div className="rounded-2xl bg-white/8 px-4 py-3 text-right">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/45">Amount Due</p>
+                      <p className="mt-1 font-display text-3xl font-bold">
+                        {paymentAmount ? formatCurrency(parseFloat(paymentAmount), link.currency) : formatCurrency(link.amount || 0, link.currency)}
+                      </p>
+                    </div>
+                  </div>
+
+                  {!link.amount && (
+                    <div>
+                      <label className="mb-1.5 block text-sm font-medium text-white/80">Invoice Amount ({link.currency})</label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold text-white/45">
+                          {link.currency === "USD" ? "$" : link.currency === "NGN" ? "N" : link.currency}
+                        </span>
+                        <input
+                          type="number"
+                          value={amount}
+                          onChange={(event) => setAmount(event.target.value)}
+                          placeholder="0.00"
+                          className="input-base border-white/10 bg-white/10 pl-8 text-white placeholder:text-white/30"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <label className="mb-1.5 block text-sm font-medium text-white/80">Payer Name</label>
+                      <input
+                        value={name}
+                        onChange={(event) => setName(event.target.value)}
+                        placeholder="John Doe"
+                        className="input-base border-white/10 bg-white/10 text-white placeholder:text-white/30"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1.5 block text-sm font-medium text-white/80">Email Address</label>
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={(event) => setEmail(event.target.value)}
+                        placeholder="you@email.com"
+                        className="input-base border-white/10 bg-white/10 text-white placeholder:text-white/30"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-white/80">Payment Method</label>
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                      {PAYMENT_METHOD_OPTIONS.map((option) => (
+                        <button
+                          key={option.value}
+                          type="button"
+                          onClick={() => setSelectedPaymentMethod(option.value)}
+                          className={`rounded-2xl border px-4 py-3 text-left transition-colors ${
+                            paymentMethod === option.value
+                              ? "border-primary bg-primary/12 shadow-sm"
+                              : "border-white/10 bg-white/5 hover:border-primary/40"
+                          }`}
+                        >
+                          <p className="font-medium text-white">{option.label}</p>
+                          <p className="mt-1 text-xs text-white/55">{option.description}</p>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                    <div className="flex items-start gap-3">
+                      <Globe className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                      <p className="text-sm leading-6 text-white/70">
+                        Busha will generate current payment instructions for this invoice, whether that is a wallet address, QR code, or bank collection details.
+                      </p>
+                    </div>
+                  </div>
+
+                  {paymentRequestMutation.error && (
+                    <div className="rounded-2xl border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm text-red-100">
+                      {paymentRequestMutation.error instanceof Error
+                        ? paymentRequestMutation.error.message
+                        : "Unable to create payment request."}
+                    </div>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={paymentRequestMutation.isPending || !name || !email || !paymentAmount}
+                    className="btn-primary w-full justify-center rounded-2xl py-3.5 text-base shadow-lg shadow-primary/20"
+                  >
+                    {paymentRequestMutation.isPending ? (
+                      <span className="flex items-center gap-2">
+                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-slate-900/20 border-t-slate-900" />
+                        Preparing instructions...
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-2">
+                        <CreditCard className="h-4 w-4" />
+                        Generate Payment Instructions
+                      </span>
+                    )}
+                  </button>
+
+                  <div className="flex items-center justify-center gap-1.5 text-xs text-white/45">
+                    <Lock className="h-3 w-3" />
+                    Secured by Fluent · 256-bit encryption
+                  </div>
+                </form>
+              ) : (
+                <div className="space-y-5">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-white/80">
+                        <Receipt className="h-3.5 w-3.5 text-primary" />
+                        Payment Receipt
+                      </div>
+                      <h2 className="mt-4 font-display text-2xl font-bold tracking-tight">
+                        {paymentRequest.status === "completed" ? "Payment confirmed" : "Payment instructions ready"}
+                      </h2>
+                      <p className="mt-2 text-sm leading-6 text-white/65">
+                        {paymentRequest.status === "completed"
+                          ? "Busha has confirmed this payment request."
+                          : `Send exactly ${paymentRequest.source_amount} ${paymentRequest.source_currency} using the verified details below.`}
+                      </p>
+                    </div>
+                    <div
+                      className={`rounded-2xl px-4 py-3 text-sm font-semibold ${
+                        paymentRequest.status === "completed"
+                          ? "bg-emerald-500/15 text-emerald-200"
+                          : "bg-amber-500/15 text-amber-100"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        {paymentRequest.status === "completed" ? <CheckCircle2 className="h-4 w-4" /> : <Clock3 className="h-4 w-4" />}
+                        <span className="capitalize">{paymentRequest.status}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="rounded-2xl border border-white/10 bg-white/6 p-4">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/45">Amount</p>
+                      <p className="mt-2 font-display text-3xl font-bold text-white">
+                        {paymentRequest.source_amount} {paymentRequest.source_currency}
+                      </p>
+                    </div>
+                    <div className="rounded-2xl border border-white/10 bg-white/6 p-4">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/45">Reference</p>
+                      <p className="mt-2 break-all font-mono text-sm font-semibold text-white">{paymentRequest.reference}</p>
+                    </div>
+                  </div>
+
+                  {isCryptoPayment && qrCodeUrl && (
+                    <div className="flex justify-center rounded-[1.75rem] border border-white/10 bg-white p-5">
+                      <Image
+                        src={qrCodeUrl}
+                        alt="Payment address QR code"
+                        width={220}
+                        height={220}
+                        unoptimized
+                        className="h-full w-full max-w-[220px]"
+                      />
+                    </div>
+                  )}
+
+                  <div className="rounded-[1.75rem] border border-white/10 bg-white/6 p-5">
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div>
+                        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/45">Network / Provider</p>
+                        <p className="mt-2 text-sm font-semibold text-white">
+                          {paymentRequest.pay_in?.network ||
+                            paymentRequest.pay_in?.provider ||
+                            paymentRequest.target_currency}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/45">{payInLabel}</p>
+                        <div className="mt-2 rounded-2xl bg-slate-950/40 p-3 font-mono text-xs break-all text-white/90">
+                          {payInValue || "Busha will provide this detail shortly."}
+                        </div>
+                      </div>
+                    </div>
+
+                    {!isCryptoPayment && (
+                      <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                        {paymentRequest.pay_in?.bank_name ? (
+                          <div className="rounded-2xl bg-white/6 p-3">
+                            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/45">Bank</p>
+                            <p className="mt-1 text-sm font-semibold text-white">{paymentRequest.pay_in.bank_name}</p>
+                          </div>
+                        ) : null}
+                        {paymentRequest.pay_in?.account_name ? (
+                          <div className="rounded-2xl bg-white/6 p-3">
+                            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/45">Account Name</p>
+                            <p className="mt-1 text-sm font-semibold text-white">{paymentRequest.pay_in.account_name}</p>
+                          </div>
+                        ) : null}
+                        {paymentRequest.pay_in?.phone_number ? (
+                          <div className="rounded-2xl bg-white/6 p-3 sm:col-span-2">
+                            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/45">Phone Number</p>
+                            <p className="mt-1 text-sm font-semibold text-white">{paymentRequest.pay_in.phone_number}</p>
+                          </div>
+                        ) : null}
+                      </div>
+                    )}
+                  </div>
+
+                  <button
+                    onClick={() => copyAddress(paymentRequest)}
+                    className="btn-secondary w-full justify-center rounded-2xl border-white/15 bg-white/8 py-3 text-white hover:bg-white/12"
+                  >
+                    <Copy className="h-4 w-4" />
+                    {copied ? "Copied" : `Copy ${isCryptoPayment ? "Address" : "Account"}`}
+                  </button>
+
+                  {paymentRequest.pay_in?.expires_at && (
+                    <p className="text-center text-xs text-white/45">
+                      Payment instruction expires {formatDate(paymentRequest.pay_in.expires_at)}
+                    </p>
+                  )}
+
+                  {paymentRequest.timeline?.events?.length ? (
+                    <div className="space-y-3">
+                      {paymentRequest.timeline.events.map((event) => (
+                        <div key={`${event.step}-${event.status}`} className="rounded-2xl border border-white/10 bg-white/6 p-4">
+                          <div className="flex items-center justify-between gap-3">
+                            <p className="text-sm font-semibold text-white">{event.title}</p>
+                            <span className="text-[10px] uppercase tracking-[0.18em] text-white/45">{event.status}</span>
+                          </div>
+                          <p className="mt-1 text-sm leading-6 text-white/60">{event.description}</p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+              )}
+            </section>
+          </div>
         </div>
       </div>
     </div>

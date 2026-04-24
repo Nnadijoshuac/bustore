@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Icon } from "@iconify/react";
@@ -8,13 +9,14 @@ import { Topbar } from "@/components/shared/topbar";
 import { StatusBadge } from "@/components/ui/badge";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { cn } from "@/lib/utils";
+import type { Transaction } from "@/types";
 
 const FILTERS = ["all", "incoming", "outgoing", "settlement"];
 const STATUS_FILTERS = ["all", "completed", "pending", "processing", "failed"];
 
 export default function TransactionsPage() {
   const [panelOpen, setPanelOpen] = useState(false);
-  const [selectedTxn, setSelectedTxn] = useState<any | null>(null);
+  const [selectedTxn, setSelectedTxn] = useState<Transaction | null>(null);
   const [typeFilter, setTypeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [search, setSearch] = useState("");
@@ -36,7 +38,7 @@ export default function TransactionsPage() {
       (transaction.sender_name ?? "").toLowerCase().includes(search.toLowerCase())
   );
 
-  const handleView = (txn: any) => {
+  const handleView = (txn: Transaction) => {
     setSelectedTxn(txn);
     setPanelOpen(true);
   };
@@ -171,9 +173,20 @@ export default function TransactionsPage() {
           <div className="flex flex-col h-full">
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-border/40">
-              <div>
-                <h2 className="font-display font-bold text-lg text-slate-900">Receipt Details</h2>
-                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5">Transaction timeline</p>
+              <div className="flex items-center gap-3">
+                <Image
+                  src="/logo_fluent.png"
+                  alt="Fluent logo"
+                  width={120}
+                  height={80}
+                  priority
+                  sizes="120px"
+                  className="h-9 w-auto object-contain"
+                />
+                <div>
+                  <h2 className="font-display font-bold text-lg text-slate-900">Receipt</h2>
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5">Verified transaction record</p>
+                </div>
               </div>
               <button 
                 onClick={() => setPanelOpen(false)}
@@ -187,22 +200,51 @@ export default function TransactionsPage() {
             <div className="flex-1 overflow-y-auto p-5 space-y-6 custom-scrollbar">
               {selectedTxn && (
                 <div className="space-y-6">
-                  <div className="flex flex-col items-center text-center p-6 rounded-[2rem] bg-secondary/30 border border-border/40">
-                     <div className={cn(
-                       "w-14 h-14 rounded-xl bg-white flex items-center justify-center shadow-sm mb-3",
-                       selectedTxn.type === "incoming" ? "text-emerald-500" : "text-slate-500"
-                     )}>
-                       <Icon icon={selectedTxn.type === "incoming" ? "solar:arrow-down-left-bold-duotone" : "solar:arrow-up-right-bold-duotone"} className="w-7 h-7" />
+                  <div className="overflow-hidden rounded-[2rem] border border-slate-200 bg-[linear-gradient(160deg,_#0f172a_0%,_#122133_100%)] text-white shadow-xl">
+                     <div className="border-b border-white/10 px-6 py-5">
+                       <div className="flex items-start justify-between gap-4">
+                         <div>
+                           <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-white/45">Receipt Summary</p>
+                           <h3 className="mt-2 text-3xl font-bold tracking-tight">
+                             {selectedTxn.type === "incoming" ? "+" : "-"}{formatCurrency(selectedTxn.amount, selectedTxn.currency)}
+                           </h3>
+                           <p className="mt-2 text-sm text-white/65">{selectedTxn.description}</p>
+                         </div>
+                         <div className={cn(
+                           "rounded-2xl px-4 py-3 text-sm font-semibold",
+                           selectedTxn.type === "incoming" ? "bg-emerald-500/15 text-emerald-100" : "bg-white/10 text-white"
+                         )}>
+                           <div className="flex items-center gap-2">
+                             <Icon icon={selectedTxn.type === "incoming" ? "solar:arrow-down-left-bold-duotone" : "solar:arrow-up-right-bold-duotone"} className="w-4 h-4" />
+                             <span className="capitalize">{selectedTxn.type}</span>
+                           </div>
+                         </div>
+                       </div>
                      </div>
-                     <h3 className="text-2xl font-bold tracking-tight text-slate-900">
-                       {selectedTxn.type === "incoming" ? "+" : "-"}{formatCurrency(selectedTxn.amount, selectedTxn.currency)}
-                     </h3>
-                     <p className="text-[10px] font-bold mt-1 uppercase tracking-widest text-muted-foreground">{selectedTxn.type}</p>
-                     <StatusBadge status={selectedTxn.status} className="mt-3" />
+                     <div className="grid gap-4 px-6 py-5 sm:grid-cols-2">
+                       <div>
+                         <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/45">Reference</p>
+                         <p className="mt-2 break-all font-mono text-sm font-semibold text-white">{selectedTxn.reference}</p>
+                       </div>
+                       <div>
+                         <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/45">Recorded At</p>
+                         <p className="mt-2 text-sm font-semibold text-white">{formatDate(selectedTxn.created_at)}</p>
+                       </div>
+                       <div>
+                         <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/45">Counterparty</p>
+                         <p className="mt-2 text-sm font-semibold text-white">{selectedTxn.sender_name || "Fluent System"}</p>
+                       </div>
+                       <div>
+                         <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/45">Status</p>
+                         <div className="mt-2">
+                           <StatusBadge status={selectedTxn.status} />
+                         </div>
+                       </div>
+                     </div>
                   </div>
 
                   <div className="space-y-4">
-                    <h6 className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.2em] px-1">Deep Details</h6>
+                    <h6 className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.2em] px-1">Receipt Details</h6>
                     <div className="grid grid-cols-1 gap-3">
                        <div className="flex items-center justify-between p-3.5 rounded-xl bg-card border border-border/50">
                          <div className="flex items-center gap-2.5">
@@ -218,6 +260,14 @@ export default function TransactionsPage() {
                            <span className="text-xs font-bold text-muted-foreground">Reference</span>
                          </div>
                          <span className="text-xs font-mono font-bold text-slate-800">{selectedTxn.reference}</span>
+                       </div>
+
+                       <div className="flex items-center justify-between p-3.5 rounded-xl bg-card border border-border/50">
+                         <div className="flex items-center gap-2.5">
+                           <Icon icon="solar:document-text-bold-duotone" className="w-4 h-4 text-primary" />
+                           <span className="text-xs font-bold text-muted-foreground">Description</span>
+                         </div>
+                         <span className="max-w-[55%] text-right text-xs font-bold text-slate-800">{selectedTxn.description}</span>
                        </div>
 
                        <div className="flex items-center justify-between p-3.5 rounded-xl bg-card border border-border/50">
@@ -241,7 +291,7 @@ export default function TransactionsPage() {
                   <div className="p-3.5 rounded-xl bg-primary/5 flex items-start gap-2.5 border border-primary/10">
                     <Icon icon="solar:verified-check-bold-duotone" className="w-4 h-4 text-primary mt-0.5" />
                     <p className="text-[10px] text-slate-600 leading-relaxed font-medium">
-                      This record is immutable and verified on the settlement ledger. Digital receipts can be downloaded as a PDF for tax compliance.
+                      This receipt is a verified transaction record from your Fluent workspace. It is suitable for client confirmation, bookkeeping, and tax reference.
                     </p>
                   </div>
                 </div>
