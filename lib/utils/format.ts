@@ -2,10 +2,10 @@ import { Currency } from "@/types";
 
 const CURRENCY_SYMBOLS: Record<Currency, string> = {
   USD: "$",
-  EUR: "€",
-  GBP: "£",
-  NGN: "₦",
-  GHS: "₵",
+  EUR: "EUR ",
+  GBP: "GBP ",
+  NGN: "NGN ",
+  GHS: "GHS ",
   KES: "KSh",
   ZAR: "R",
 };
@@ -22,9 +22,7 @@ export function formatCurrency(
     notation: options.compact ? "compact" : "standard",
   }).format(amount);
 
-  return options.showCode
-    ? `${symbol}${formatted} ${currency}`
-    : `${symbol}${formatted}`;
+  return options.showCode ? `${symbol}${formatted} ${currency}` : `${symbol}${formatted}`;
 }
 
 export function formatDate(
