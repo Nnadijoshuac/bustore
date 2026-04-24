@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useQuery } from "@tanstack/react-query";
 import { Icon } from "@iconify/react";
 import { cn } from "@/lib/utils";
@@ -23,12 +24,18 @@ export function AIInsightsCard() {
     <div className="relative overflow-hidden rounded-[1.5rem] bg-white border border-border/40 p-5 shadow-sm group">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-            <Icon icon="solar:stars-minimalistic-bold-duotone" className="w-4.5 h-4.5 text-primary" />
-          </div>
+          <Image
+            src="/logo_fluent_ai.png"
+            alt="Fluent AI logo"
+            width={40}
+            height={40}
+            priority
+            sizes="40px"
+            className="h-10 w-auto object-contain"
+          />
           <div>
-            <h3 className="font-display font-bold text-xs text-slate-900 tracking-tight">Ejima Insights</h3>
-            <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest leading-none">powered by ejima</p>
+            <h3 className="font-display font-bold text-xs text-slate-900 tracking-tight">Fluent AI Insights</h3>
+            <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest leading-none">analysis engine</p>
           </div>
         </div>
         <button 

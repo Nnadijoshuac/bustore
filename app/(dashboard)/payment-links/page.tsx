@@ -25,6 +25,7 @@ export default function PaymentLinksPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const origin = typeof window !== "undefined" ? window.location.origin : "";
+  const getPublicLinkUrl = (link: PaymentLink) => `${window.location.origin}/pay/${link.slug}`;
 
   const { data: links = [], isLoading } = useQuery({
     queryKey: ["payment-links"],
@@ -45,9 +46,7 @@ export default function PaymentLinksPage() {
 
   const allowCustomerAmount = useWatch({ control, name: "allow_customer_amount" });
 
-  const selectedLinkUrl = selectedLink
-    ? selectedLink.hosted_url || (origin ? `${origin}/${selectedLink.slug}` : "")
-    : "";
+  const selectedLinkUrl = selectedLink ? (origin ? `${origin}/pay/${selectedLink.slug}` : "") : "";
 
   const qrLinkUrl = selectedLinkUrl;
 
@@ -112,13 +111,13 @@ export default function PaymentLinksPage() {
   });
 
   const copyLink = (link: PaymentLink) => {
-    const url = link.hosted_url || `${window.location.origin}/${link.slug}`;
+    const url = getPublicLinkUrl(link);
     navigator.clipboard.writeText(url);
     toast({ title: "Copied", description: "URL saved to clipboard" });
   };
 
   const openLink = (link: PaymentLink) => {
-    const url = link.hosted_url || `${window.location.origin}/${link.slug}`;
+    const url = getPublicLinkUrl(link);
     window.open(url, "_blank", "noopener,noreferrer");
   };
 

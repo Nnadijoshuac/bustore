@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState, useRef, useEffect } from "react";
 import { Icon } from "@iconify/react";
 import { cn } from "@/lib/utils";
@@ -101,15 +102,18 @@ export function AICopilot() {
           {/* Header */}
           <div className="flex items-center justify-between bg-slate-900 px-5 py-4 text-white">
             <div className="flex items-center gap-2.5">
-              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary">
-                <Icon icon="solar:stars-minimalistic-bold-duotone" className="h-5 w-5 text-slate-900" />
-              </div>
+              <Image
+                src="/logo_fluent_ai.png"
+                alt="Fluent AI logo"
+                width={44}
+                height={44}
+                priority
+                sizes="44px"
+                className="h-11 w-auto object-contain"
+              />
               <div>
-                <p className="text-xs font-bold tracking-tight">Fluent</p>
-                <div className="flex items-center gap-1">
-                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
-                  <p className="text-[9px] font-bold text-emerald-400 uppercase tracking-widest leading-none">powered by ejima</p>
-                </div>
+                <p className="text-xs font-bold tracking-tight">Fluent AI</p>
+                <p className="text-[9px] font-bold text-emerald-400 uppercase tracking-widest leading-none">live assistant</p>
               </div>
             </div>
             <button onClick={() => setIsOpen(false)} className="rounded-lg p-1.5 hover:bg-white/10 transition-colors">
@@ -171,7 +175,7 @@ export function AICopilot() {
               <input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Ask Fluent..."
+                placeholder="Ask Fluent AI..."
                 className="input-base flex-1 h-10 border-none bg-secondary/40 font-bold"
               />
               <button disabled={!input.trim() || isLoading} className="btn-primary h-10 w-10 flex items-center justify-center p-0 rounded-xl">

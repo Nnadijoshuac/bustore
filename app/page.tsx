@@ -49,11 +49,11 @@ export default function HomePage() {
               <Image
                 src="/logo_fluent.png"
                 alt="Fluent logo"
-                width={168}
-                height={112}
+                width={220}
+                height={148}
                 priority
-                sizes="(max-width: 640px) 140px, 168px"
-                className="h-12 w-auto flex-shrink-0 object-contain sm:h-14"
+                sizes="(max-width: 640px) 180px, 220px"
+                className="h-14 w-auto flex-shrink-0 object-contain sm:h-16"
               />
               <div className="min-w-0">
                 <p className="font-display text-lg font-bold tracking-tight sm:text-xl">Fluent</p>

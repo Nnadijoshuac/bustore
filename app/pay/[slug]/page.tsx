@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import QRCode from "qrcode";
@@ -19,18 +19,6 @@ const PAYMENT_METHOD_OPTIONS = [
   { value: "KES", label: "KES", description: "Kenyan shilling collection" },
 ] as const;
 
-function getStoredPaymentLink(slug: string) {
-  if (typeof window === "undefined") {
-    return undefined;
-  }
-
-  const storedLinks = JSON.parse(
-    window.localStorage.getItem(LOCAL_STORAGE_PAYMENT_LINKS_KEY) || "[]"
-  ) as PaymentLink[];
-
-  return storedLinks.find((link) => link.slug === slug);
-}
-
 export default function PublicPaymentPage() {
   const { slug } = useParams();
   const slugValue = Array.isArray(slug) ? slug[0] : slug;
@@ -42,18 +30,16 @@ export default function PublicPaymentPage() {
     (typeof PAYMENT_METHOD_OPTIONS)[number]["value"] | null
   >(null);
 
+  useEffect(() => {
+    window.localStorage.removeItem(LOCAL_STORAGE_PAYMENT_LINKS_KEY);
+  }, []);
+
   const { data: link, error, isLoading } = useQuery({
     queryKey: ["payment-link", slugValue],
     queryFn: async () => {
       const response = await fetch(`/api/payment-links/${slugValue}`, { cache: "no-store" });
 
       if (!response.ok) {
-        const storedLink = slugValue ? getStoredPaymentLink(slugValue) : undefined;
-
-        if (storedLink) {
-          return storedLink;
-        }
-
         throw new Error("Payment link not found.");
       }
 
@@ -172,11 +158,11 @@ export default function PublicPaymentPage() {
           <Image
             src="/logo_fluent.png"
             alt="Fluent logo"
-            width={108}
-            height={72}
+            width={148}
+            height={100}
             priority
-            sizes="108px"
-            className="h-9 w-auto object-contain"
+            sizes="148px"
+            className="h-12 w-auto object-contain"
           />
           <span className="font-display text-lg font-bold sm:text-xl">Fluent</span>
         </div>

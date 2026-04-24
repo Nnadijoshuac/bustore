@@ -23,10 +23,22 @@ export async function GET(
 
   try {
     const busha = createBushaClient();
+    const directResult = await busha.get<{ data?: Record<string, unknown> }>(`/v1/payments/links/${slug}`);
+
+    if (directResult.data) {
+      const directLink = normalizePaymentLink(directResult.data, existingLink);
+
+      try {
+        await upsertPaymentLinks([directLink]);
+      } catch (error) {
+        console.error("[Payment Link Store Write Error]:", error);
+      }
+
+      return NextResponse.json({ data: directLink });
+    }
+
     const result = await busha.get<{ data?: Record<string, unknown>[] }>("/v1/payments/links");
-    const remoteLinks = (result.data || []).map((item) =>
-      normalizePaymentLink(item, existingLink)
-    );
+    const remoteLinks = (result.data || []).map((item) => normalizePaymentLink(item, existingLink));
 
     if (remoteLinks.length > 0) {
       try {

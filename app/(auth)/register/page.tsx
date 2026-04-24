@@ -30,11 +30,11 @@ export default function RegisterPage() {
         <Image
           src="/logo_fluent.png"
           alt="Fluent logo"
-          width={150}
-          height={100}
+          width={200}
+          height={134}
           priority
-          sizes="150px"
-          className="h-11 w-auto object-contain"
+          sizes="200px"
+          className="h-14 w-auto object-contain"
         />
         <div>
           <p className="font-display text-xl font-bold">Fluent</p>

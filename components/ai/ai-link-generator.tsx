@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import { Icon } from "@iconify/react";
 import { UseFormSetValue } from "react-hook-form";
@@ -51,12 +52,20 @@ export function AILinkGenerator({ setValue }: AILinkGeneratorProps) {
       <div className="absolute top-0 right-0 w-24 h-24 bg-primary opacity-5 rounded-full translate-x-1/2 -translate-y-1/2 blur-2xl group-hover:opacity-10 transition-opacity" />
       
       <div className="flex items-center gap-2">
-        <Icon icon="solar:magic-stick-3-bold-duotone" className="h-4 w-4 text-primary" />
+        <Image
+          src="/logo_fluent_ai.png"
+          alt="Fluent AI logo"
+          width={40}
+          height={40}
+          priority
+          sizes="40px"
+          className="h-10 w-auto object-contain"
+        />
         <div className="flex flex-col">
           <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/70 leading-none">
-            {generated ? "Draft Perfected" : "AI Content Studio"}
+            {generated ? "Draft Perfected" : "Fluent AI"}
           </p>
-          <p className="text-[8px] font-bold text-white/30 uppercase tracking-widest mt-1">powered by ejima</p>
+          <p className="text-[8px] font-bold text-white/30 uppercase tracking-widest mt-1">content studio</p>
         </div>
       </div>
 

@@ -63,17 +63,17 @@ export function Sidebar() {
           )}
         >
           <div className="flex items-center gap-2.5">
-             <div className="w-8 h-8 flex items-center justify-center shrink-0">
+             <div className="h-10 w-10 flex items-center justify-center shrink-0">
                 <Image 
                   src="/logo_fluent.png" 
-                  alt="Ejima Logo" 
-                  width={32} 
-                  height={32} 
+                  alt="Fluent logo" 
+                  width={40} 
+                  height={40} 
                   className="w-full h-auto object-contain" 
                 />
              </div>
              {showExpanded && (
-                <span className="font-display text-base font-bold tracking-tight text-slate-900">Ejima</span>
+                <span className="font-display text-base font-bold tracking-tight text-slate-900">Fluent</span>
              )}
           </div>
           

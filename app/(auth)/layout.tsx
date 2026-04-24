@@ -18,11 +18,11 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
               <Image
                 src="/logo_fluent.png"
                 alt="Fluent logo"
-                width={168}
-                height={112}
+                width={220}
+                height={148}
                 priority
-                sizes="168px"
-                className="h-12 w-auto object-contain"
+                sizes="220px"
+                className="h-14 w-auto object-contain"
               />
               <div className="min-w-0">
                 <p className="font-display text-2xl font-bold">Fluent</p>
