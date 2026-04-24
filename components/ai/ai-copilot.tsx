@@ -21,7 +21,7 @@ export function AICopilot() {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
-      content: "Hi! I'm Ejima AI. I have live access to your transactions and balance. How can I help you today?",
+      content: "Hi! I'm Fluent. I have live access to your transactions and balance. How can I help you today?",
     },
   ]);
   const [input, setInput] = useState("");
@@ -105,7 +105,7 @@ export function AICopilot() {
                 <Icon icon="solar:stars-minimalistic-bold-duotone" className="h-5 w-5 text-slate-900" />
               </div>
               <div>
-                <p className="text-xs font-bold tracking-tight">Ejima AI</p>
+                <p className="text-xs font-bold tracking-tight">Fluent</p>
                 <div className="flex items-center gap-1">
                   <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
                   <p className="text-[9px] font-bold text-emerald-400 uppercase tracking-widest leading-none">powered by ejima</p>
@@ -116,7 +116,6 @@ export function AICopilot() {
               <Icon icon="solar:close-circle-bold-duotone" className="h-5 w-5 text-white/60" />
             </button>
           </div>
-...
 
           {/* Messages */}
           <div ref={scrollRef} className="flex-1 overflow-y-auto p-5 space-y-5 custom-scrollbar bg-secondary/10">
@@ -172,7 +171,7 @@ export function AICopilot() {
               <input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Ask Fluent AI..."
+                placeholder="Ask Fluent..."
                 className="input-base flex-1 h-10 border-none bg-secondary/40 font-bold"
               />
               <button disabled={!input.trim() || isLoading} className="btn-primary h-10 w-10 flex items-center justify-center p-0 rounded-xl">

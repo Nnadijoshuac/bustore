@@ -31,9 +31,17 @@ const delay = (ms = 400) => new Promise((r) => setTimeout(r, ms));
 // ─── Dashboard ───────────────────────────────────────────────
 
 export async function getDashboardStats(): Promise<DashboardStats> {
-  // TODO: GET /api/v1/accounts/{id}/stats
-  await delay();
-  return DEMO_STATS;
+  // Try to get real count of payment links if possible, else fallback to demo
+  try {
+    const links = await getPaymentLinks();
+    const activeLinksCount = links.filter(l => l.status === "active").length;
+    return {
+      ...DEMO_STATS,
+      active_payment_links: activeLinksCount,
+    };
+  } catch (error) {
+    return DEMO_STATS;
+  }
 }
 
 export async function getChartData(): Promise<ChartDataPoint[]> {
