@@ -2,13 +2,14 @@ import { NextResponse } from "next/server";
 import { findPaymentLinkBySlug, upsertPaymentLinks } from "@/lib/api/payment-link-store";
 import { createBushaClient } from "@/lib/api/busha-client";
 import { normalizePaymentLink } from "@/lib/api/busha-normalizers";
+import type { PaymentLink } from "@/types";
 
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ slug: string }> }
 ) {
   const { slug } = await params;
-  let existingLink;
+  let existingLink: PaymentLink | undefined;
 
   try {
     existingLink = await findPaymentLinkBySlug(slug);
