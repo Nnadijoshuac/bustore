@@ -76,6 +76,8 @@ export interface PaymentLink {
   slug: string; // e.g. pay.bushapay.com/pay/{slug}
   hosted_url?: string;
   redirect_url?: string;
+  one_time: boolean;
+  allow_customer_amount: boolean;
   total_collected: number;
   payment_count: number;
   created_at: string;

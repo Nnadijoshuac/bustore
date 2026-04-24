@@ -61,6 +61,8 @@ export function normalizePaymentLink(data: Record<string, unknown>, fallback?: P
     slug: normalizeSlug(rawSlug),
     hosted_url: getBushaCheckoutUrl(stringValue(data.link, fallback?.hosted_url || "")),
     redirect_url: fallback?.redirect_url,
+    one_time: typeof data.one_time === "boolean" ? data.one_time : fallback?.one_time || false,
+    allow_customer_amount: typeof data.allow_customer_amount === "boolean" ? data.allow_customer_amount : fallback?.allow_customer_amount || false,
     total_collected: fallback?.total_collected || 0,
     payment_count: fallback?.payment_count || 0,
     created_at: stringValue(data.created_at, fallback?.created_at || new Date().toISOString()),
