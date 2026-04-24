@@ -4,8 +4,7 @@ import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getPaymentLinks, createPaymentLink } from "@/lib/api/service";
 import { Topbar } from "@/components/shared/topbar";
-import { StatusBadge } from "@/components/ui/badge";
-import { formatCurrency, formatDate } from "@/lib/utils";
+import { formatCurrency } from "@/lib/utils";
 import { useToast } from "@/components/ui/toaster";
 import { createPaymentLinkSchema } from "@/lib/validations";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -25,6 +24,7 @@ export default function PaymentLinksPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
 
   const { data: links = [], isLoading } = useQuery({
     queryKey: ["payment-links"],
@@ -45,9 +45,11 @@ export default function PaymentLinksPage() {
 
   const allowCustomerAmount = useWatch({ control, name: "allow_customer_amount" });
 
-  const qrLinkUrl = selectedLink && typeof window !== "undefined"
-    ? `${window.location.origin}/${selectedLink.slug}`
+  const selectedLinkUrl = selectedLink
+    ? selectedLink.hosted_url || (origin ? `${origin}/${selectedLink.slug}` : "")
     : "";
+
+  const qrLinkUrl = selectedLinkUrl;
 
   const { data: qrCodeDataUrl = "" } = useQuery({
     queryKey: ["payment-link-qr", qrLinkUrl],
@@ -86,11 +88,20 @@ export default function PaymentLinksPage() {
 
   const mutation = useMutation({
     mutationFn: createPaymentLink,
-    onSuccess: () => {
+    onSuccess: (link) => {
       queryClient.invalidateQueries({ queryKey: ["payment-links"] });
+      setSelectedLink(link);
+      setPanelOpen(true);
+      reset({
+        title: link.title,
+        description: link.description || "",
+        amount: link.amount,
+        currency: link.currency,
+        one_time: link.one_time,
+        allow_customer_amount: link.allow_customer_amount,
+        redirect_url: link.redirect_url || "",
+      });
       toast({ title: "Link Created", description: "Your payment link is live.", variant: "success" });
-      setPanelOpen(false);
-      reset();
     },
     onError: (error) =>
       toast({
@@ -101,9 +112,14 @@ export default function PaymentLinksPage() {
   });
 
   const copyLink = (link: PaymentLink) => {
-    const url = `${window.location.origin}/${link.slug}`;
+    const url = link.hosted_url || `${window.location.origin}/${link.slug}`;
     navigator.clipboard.writeText(url);
     toast({ title: "Copied", description: "URL saved to clipboard" });
+  };
+
+  const openLink = (link: PaymentLink) => {
+    const url = link.hosted_url || `${window.location.origin}/${link.slug}`;
+    window.open(url, "_blank", "noopener,noreferrer");
   };
 
   const filteredLinks = links.filter(l => 
@@ -152,7 +168,7 @@ export default function PaymentLinksPage() {
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <Icon icon="solar:link-broken-bold-duotone" className="w-10 h-10 text-muted-foreground/30 mb-3" />
             <h3 className="font-display font-bold text-sm text-slate-800">No links active</h3>
-            <p className="text-[10px] text-muted-foreground mt-0.5">Click 'New Link' to get started.</p>
+            <p className="text-[10px] text-muted-foreground mt-0.5">Click &apos;New Link&apos; to get started.</p>
           </div>
         ) : (
           <div className="space-y-1.5">
@@ -237,11 +253,19 @@ export default function PaymentLinksPage() {
                   </div>
                   <div className="min-w-0 z-10">
                     <h5 className="text-[11px] font-bold text-primary uppercase tracking-[0.2em] mb-1">Payer Portal</h5>
-                    <p className="text-[10px] text-white/50 leading-normal mb-2 truncate font-mono">/{selectedLink.slug}</p>
-                    <button onClick={() => copyLink(selectedLink)} className="text-[9px] font-bold py-1.5 px-3 rounded-lg bg-white/10 hover:bg-white/20 transition-all flex items-center gap-1.5 uppercase border border-white/5">
-                      <Icon icon="solar:copy-bold-duotone" className="w-3.5 h-3.5 text-primary" />
-                      Copy Link
-                    </button>
+                    <p className="text-[10px] text-white/50 leading-normal mb-2 truncate font-mono">
+                      {selectedLinkUrl || `/${selectedLink.slug}`}
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      <button onClick={() => copyLink(selectedLink)} type="button" className="text-[9px] font-bold py-1.5 px-3 rounded-lg bg-white/10 hover:bg-white/20 transition-all flex items-center gap-1.5 uppercase border border-white/5">
+                        <Icon icon="solar:copy-bold-duotone" className="w-3.5 h-3.5 text-primary" />
+                        Copy Link
+                      </button>
+                      <button onClick={() => openLink(selectedLink)} type="button" className="text-[9px] font-bold py-1.5 px-3 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-all flex items-center gap-1.5 uppercase">
+                        <Icon icon="solar:square-top-down-bold-duotone" className="w-3.5 h-3.5" />
+                        Open Checkout
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}

@@ -17,9 +17,8 @@ import { DEMO_ACCOUNT } from "@/lib/api/demo-data";
 import { Topbar } from "@/components/shared/topbar";
 import { StatusBadge } from "@/components/ui/badge";
 import { StatCardSkeleton } from "@/components/ui/skeleton";
-import { formatCurrency, formatDate } from "@/lib/utils";
+import { formatCurrency, formatDate, cn } from "@/lib/utils";
 import { AIInsightsCard } from "@/components/ai/ai-insights-card";
-import { cn } from "@/lib/utils";
 import { useAppStore } from "@/lib/store/app.store";
 
 export default function OverviewPage() {

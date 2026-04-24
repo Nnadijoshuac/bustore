@@ -25,14 +25,19 @@ export function AILinkGenerator({ setValue }: AILinkGeneratorProps) {
     try {
       const response = await fetch("/api/ai/generate-link", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ prompt }),
       });
 
-      if (!response.ok) throw new Error("Failed to generate content");
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({})) as { error?: string };
+        throw new Error(err.error ?? "Failed to generate content");
+      }
 
-      const data = await response.json();
-      setValue("title", data.title);
-      setValue("description", data.description);
+      const data = await response.json() as { title?: string; description?: string };
+      if (!data.title || !data.description) throw new Error("AI returned incomplete content");
+      setValue("title", data.title, { shouldValidate: true });
+      setValue("description", data.description, { shouldValidate: true });
       setGenerated(true);
     } catch (err) {
       setError("AI was unable to generate content. Please try manual entry.");

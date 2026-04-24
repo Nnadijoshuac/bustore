@@ -152,7 +152,11 @@ export async function POST(request: Request) {
         typeof result.error === "string"
           ? result.error
           : result.error?.message || result.message || "Unable to create payment request.";
-      return NextResponse.json({ error: message }, { status: response.status || 500 });
+      const normalizedMessage =
+        message.includes("minimum 5 USDT")
+          ? "This amount is too small for USDT payments. Use NGN bank transfer for 2400 NGN, or increase the amount to at least the Busha crypto minimum."
+          : message;
+      return NextResponse.json({ error: normalizedMessage }, { status: response.status || 500 });
     }
 
     return NextResponse.json({ data: normalizePaymentRequest(result.data) }, { status: 201 });

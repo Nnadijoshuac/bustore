@@ -38,7 +38,9 @@ export default function PublicPaymentPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [copied, setCopied] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<(typeof PAYMENT_METHOD_OPTIONS)[number]["value"]>("USDT");
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<
+    (typeof PAYMENT_METHOD_OPTIONS)[number]["value"] | null
+  >(null);
 
   const { data: link, error, isLoading } = useQuery({
     queryKey: ["payment-link", slugValue],
@@ -62,6 +64,10 @@ export default function PublicPaymentPage() {
   });
 
   const paymentAmount = link?.amount ? String(link.amount) : amount;
+  const paymentMethod =
+    selectedPaymentMethod ||
+    PAYMENT_METHOD_OPTIONS.find((option) => option.value === link?.currency)?.value ||
+    "USDT";
 
   const paymentRequestMutation = useMutation({
     mutationFn: () =>
@@ -236,7 +242,7 @@ export default function PublicPaymentPage() {
                     <button
                       key={option.value}
                       type="button"
-                      onClick={() => setPaymentMethod(option.value)}
+                      onClick={() => setSelectedPaymentMethod(option.value)}
                       className={`rounded-2xl border px-4 py-3 text-left transition-colors ${
                         paymentMethod === option.value
                           ? "border-primary bg-primary/5 shadow-sm"

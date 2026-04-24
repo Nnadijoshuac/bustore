@@ -8,7 +8,13 @@ export async function GET(
   { params }: { params: Promise<{ slug: string }> }
 ) {
   const { slug } = await params;
-  const existingLink = await findPaymentLinkBySlug(slug);
+  let existingLink;
+
+  try {
+    existingLink = await findPaymentLinkBySlug(slug);
+  } catch (error) {
+    console.error("[Payment Link Store Read Error]:", error);
+  }
 
   if (existingLink?.hosted_url) {
     return NextResponse.json({ data: existingLink });
@@ -22,7 +28,11 @@ export async function GET(
     );
 
     if (remoteLinks.length > 0) {
-      await upsertPaymentLinks(remoteLinks);
+      try {
+        await upsertPaymentLinks(remoteLinks);
+      } catch (error) {
+        console.error("[Payment Link Store Write Error]:", error);
+      }
     }
 
     const link = remoteLinks.find((item) => item.slug === slug) || existingLink;
