@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import type { PaymentRequest } from "@/types";
 
+function getStringField(...values: unknown[]) {
+  const match = values.find((value) => typeof value === "string" && value.trim().length > 0);
+  return typeof match === "string" ? match : undefined;
+}
+
 function normalizePaymentRequest(data: Record<string, unknown>): PaymentRequest {
   const additionalInfo =
     typeof data.additional_info === "object" && data.additional_info !== null
@@ -13,6 +18,10 @@ function normalizePaymentRequest(data: Record<string, unknown>): PaymentRequest 
   const recipientDetails =
     payIn && typeof payIn.recipient_details === "object" && payIn.recipient_details !== null
       ? (payIn.recipient_details as Record<string, unknown>)
+      : undefined;
+  const providerDetails =
+    payIn && typeof payIn.provider_details === "object" && payIn.provider_details !== null
+      ? (payIn.provider_details as Record<string, unknown>)
       : undefined;
 
   return {
@@ -33,15 +42,38 @@ function normalizePaymentRequest(data: Record<string, unknown>): PaymentRequest 
     pay_in: payIn
       ? {
           type: String(payIn.type ?? ""),
-          address: payIn.address ? String(payIn.address) : undefined,
-          network: payIn.network ? String(payIn.network) : undefined,
-          memo: payIn.memo ? String(payIn.memo) : undefined,
-          account_name: recipientDetails?.account_name ? String(recipientDetails.account_name) : undefined,
-          bank_name: recipientDetails?.bank_name ? String(recipientDetails.bank_name) : undefined,
-          account_number: recipientDetails?.account_number ? String(recipientDetails.account_number) : undefined,
-          provider: recipientDetails?.provider ? String(recipientDetails.provider) : undefined,
-          phone_number: recipientDetails?.phone_number ? String(recipientDetails.phone_number) : undefined,
-          expires_at: payIn.expires_at ? String(payIn.expires_at) : undefined,
+          address: getStringField(payIn.address),
+          network: getStringField(payIn.network),
+          memo: getStringField(payIn.memo),
+          account_name: getStringField(
+            recipientDetails?.account_name,
+            providerDetails?.account_name,
+            payIn.account_name
+          ),
+          bank_name: getStringField(
+            recipientDetails?.bank_name,
+            providerDetails?.bank_name,
+            payIn.bank_name
+          ),
+          account_number: getStringField(
+            recipientDetails?.account_number,
+            recipientDetails?.bank_account_number,
+            providerDetails?.account_number,
+            providerDetails?.bank_account_number,
+            payIn.account_number,
+            payIn.bank_account_number
+          ),
+          provider: getStringField(
+            recipientDetails?.provider,
+            providerDetails?.provider,
+            payIn.provider
+          ),
+          phone_number: getStringField(
+            recipientDetails?.phone_number,
+            providerDetails?.phone_number,
+            payIn.phone_number
+          ),
+          expires_at: getStringField(payIn.expires_at),
         }
       : undefined,
     timeline:

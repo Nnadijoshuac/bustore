@@ -55,15 +55,15 @@ function getPayInDetails(paymentRequest?: PaymentRequest) {
 
 function PageShell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(16,185,129,0.14),_transparent_24%),linear-gradient(180deg,_#f8fbfc_0%,_#eef3f1_52%,_#fbfcfc_100%)] px-3 py-6 sm:p-4">
-      <div className="mx-auto flex w-full max-w-5xl flex-col justify-center">{children}</div>
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(16,185,129,0.14),_transparent_24%),linear-gradient(180deg,_#f8fbfc_0%,_#eef3f1_52%,_#fbfcfc_100%)] px-3 py-3 sm:px-4 sm:py-4">
+      <div className="mx-auto flex w-full max-w-6xl flex-col justify-center">{children}</div>
     </div>
   );
 }
 
 function BrandHeader() {
   return (
-    <div className="mb-6 flex items-center justify-center gap-3 sm:mb-8">
+    <div className="mb-3 flex items-center justify-center gap-3 sm:mb-4">
       <Image
         src="/logo_fluent.png"
         alt="Fluent logo"
@@ -71,10 +71,10 @@ function BrandHeader() {
         height={100}
         priority
         sizes="148px"
-        className="h-12 w-auto object-contain"
+        className="h-10 w-auto object-contain"
       />
       <div>
-        <span className="font-display text-lg font-bold sm:text-xl">Fluent</span>
+        <span className="font-display text-base font-bold sm:text-lg">Fluent</span>
         <p className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">Invoice Desk</p>
       </div>
     </div>
@@ -123,7 +123,7 @@ function PaymentMethodGrid({
   onSelect: (value: (typeof PAYMENT_METHOD_OPTIONS)[number]["value"]) => void;
 }) {
   return (
-    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+    <div className="grid grid-cols-2 gap-2 lg:grid-cols-3">
       {PAYMENT_METHOD_OPTIONS.map((option) => {
         const isSelected = selectedValue === option.value;
 
@@ -132,14 +132,14 @@ function PaymentMethodGrid({
             key={option.value}
             type="button"
             onClick={() => onSelect(option.value)}
-            className={`rounded-2xl border px-4 py-3 text-left transition-all ${
+            className={`rounded-xl border px-3 py-2.5 text-left transition-all ${
               isSelected
                 ? "border-white bg-white text-slate-950 shadow-sm"
                 : "border-white/10 bg-transparent text-white hover:border-white/30 hover:bg-white/[0.03]"
             }`}
           >
-            <p className={isSelected ? "font-semibold text-slate-950" : "font-semibold text-white"}>{option.label}</p>
-            <p className={isSelected ? "mt-1 text-xs text-slate-500" : "mt-1 text-xs text-white/50"}>
+            <p className={isSelected ? "text-sm font-semibold text-slate-950" : "text-sm font-semibold text-white"}>{option.label}</p>
+            <p className={isSelected ? "mt-0.5 text-[11px] text-slate-500" : "mt-0.5 text-[11px] text-white/50"}>
               {option.description}
             </p>
           </button>
@@ -207,14 +207,14 @@ function InvoicePanel({
   paymentAmount: string;
 }) {
   return (
-    <section className="border-b border-border/40 p-6 sm:p-8 lg:border-b-0 lg:border-r lg:p-10">
+    <section className="border-b border-border/40 p-5 sm:p-6 lg:border-b-0 lg:border-r lg:p-8">
       <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-400">Invoice</p>
-          <h1 className="mt-4 max-w-xl break-words font-display text-3xl font-semibold tracking-[-0.06em] text-slate-950 sm:text-4xl">
+          <h1 className="mt-3 max-w-xl break-words font-display text-2xl font-semibold tracking-[-0.06em] text-slate-950 sm:text-3xl">
             {link.title}
           </h1>
-          <p className="mt-3 max-w-lg text-sm leading-7 text-slate-600">
+          <p className="mt-2 max-w-lg text-sm leading-6 text-slate-600">
             {link.description || "Payment for this invoice."}
           </p>
         </div>
@@ -225,22 +225,22 @@ function InvoicePanel({
         </div>
       </div>
 
-      <div className="mt-10 grid gap-8 border-t border-border/50 pt-6 sm:grid-cols-2">
+      <div className="mt-8 grid gap-6 border-t border-border/50 pt-5 sm:grid-cols-2">
         <InvoiceMetaCard label="Powered By" value="Fluent x Busha" />
         <InvoiceMetaCard label="Created" value={formatDate(link.created_at)} />
       </div>
 
-      <div className="mt-12 border-t border-border/50 pt-8">
+      <div className="mt-8 border-t border-border/50 pt-6">
         <div className="grid gap-8 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
           <div className="pr-4">
             <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Line Item</p>
-            <p className="mt-3 text-base font-semibold text-slate-950">{link.title}</p>
-            <p className="mt-2 max-w-lg text-sm leading-7 text-slate-600">{link.description || "Invoice payment."}</p>
+            <p className="mt-2 text-[15px] font-semibold text-slate-950">{link.title}</p>
+            <p className="mt-1.5 max-w-lg text-sm leading-6 text-slate-600">{link.description || "Invoice payment."}</p>
           </div>
           <div className="text-left sm:text-right">
             <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Amount Due</p>
-            <p className="mt-3 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">{link.currency}</p>
-            <p className="mt-1 font-display text-4xl font-semibold tracking-[-0.05em] text-slate-950">
+            <p className="mt-2 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">{link.currency}</p>
+            <p className="mt-1 font-display text-3xl font-semibold tracking-[-0.05em] text-slate-950 lg:text-[2.6rem]">
               {formatInvoiceAmount(link, paymentAmount)}
             </p>
           </div>
@@ -273,17 +273,17 @@ function CheckoutPanel({
 }) {
   return (
     <form
-      className="space-y-5"
+      className="space-y-4"
       onSubmit={(event) => {
         event.preventDefault();
         onSubmit();
       }}
     >
-      <div className="flex flex-col gap-4 border-b border-white/10 pb-6 sm:flex-row sm:items-end sm:justify-between">
+      <div className="flex flex-col gap-3 border-b border-white/10 pb-5 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-white/45">Checkout</p>
-          <h2 className="mt-3 font-display text-2xl font-semibold tracking-[-0.04em]">Pay invoice</h2>
-          <p className="mt-2 text-sm text-white/55">Choose a rail and generate payment details instantly.</p>
+          <h2 className="mt-2 font-display text-2xl font-semibold tracking-[-0.04em]">Pay invoice</h2>
+          <p className="mt-1.5 text-sm text-white/55">Choose a rail and generate payment details instantly.</p>
         </div>
 
         <div className="text-left sm:text-right">
@@ -306,13 +306,13 @@ function CheckoutPanel({
               value={amount}
               onChange={(event) => onAmountChange(event.target.value)}
               placeholder="0.00"
-              className="input-base border-white/10 bg-white/10 pl-8 text-white placeholder:text-white/30"
+              className="input-base h-11 border-white/10 bg-white/10 pl-8 text-white placeholder:text-white/30"
             />
           </div>
         </div>
       ) : null}
 
-      <div className="border-t border-white/10 pt-5">
+      <div className="border-t border-white/10 pt-4">
         <label className="mb-2 block text-sm font-medium text-white/80">Payment Method</label>
         <PaymentMethodGrid selectedValue={paymentMethod} onSelect={onPaymentMethodChange} />
       </div>
@@ -326,7 +326,7 @@ function CheckoutPanel({
       <button
         type="submit"
         disabled={isPending || !paymentAmount}
-        className="btn-primary w-full justify-center rounded-2xl py-3.5 text-base shadow-lg shadow-primary/20"
+        className="btn-primary h-11 w-full justify-center rounded-2xl text-base shadow-lg shadow-primary/20"
       >
         {isPending ? (
           <span className="flex items-center gap-2">
@@ -362,10 +362,11 @@ function PaymentReceiptPanel({
 }) {
   const { isCryptoPayment, payInLabel, payInValue } = getPayInDetails(paymentRequest);
   const statusIsCompleted = paymentRequest.status === "completed";
+  const canCopyPaymentDetail = Boolean(payInValue);
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 border-b border-white/10 pb-6 sm:flex-row sm:items-start sm:justify-between">
+    <div className="space-y-5">
+      <div className="flex flex-col gap-4 border-b border-white/10 pb-5 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-white/45">Payment</p>
           <h2 className="mt-3 font-display text-2xl font-bold tracking-tight">
@@ -394,7 +395,7 @@ function PaymentReceiptPanel({
         <ReceiptMetric
           label="Amount"
           value={
-            <p className="font-display text-3xl font-bold text-white">
+            <p className="font-display text-2xl font-bold text-white">
               {paymentRequest.source_amount} {paymentRequest.source_currency}
             </p>
           }
@@ -406,19 +407,19 @@ function PaymentReceiptPanel({
       </div>
 
       {isCryptoPayment && qrCodeUrl ? (
-        <div className="flex justify-center border-y border-white/10 py-6">
+        <div className="flex justify-center border-y border-white/10 py-5">
           <Image
             src={qrCodeUrl}
             alt="Payment address QR code"
             width={220}
             height={220}
             unoptimized
-            className="h-full w-full max-w-[220px]"
+            className="h-full w-full max-w-[180px] lg:max-w-[200px]"
           />
         </div>
       ) : null}
 
-      <div className="border-t border-white/10 pt-6">
+      <div className="border-t border-white/10 pt-5">
         <div className="grid gap-4 sm:grid-cols-2">
           <ReceiptInfoBlock
             label="Network"
@@ -432,14 +433,14 @@ function PaymentReceiptPanel({
             label={payInLabel}
             value={
               <div className="font-mono text-xs break-all text-white/90">
-                {payInValue || "Busha will provide this detail shortly."}
+                {payInValue || "Payment details are still loading."}
               </div>
             }
           />
         </div>
 
         {!isCryptoPayment ? (
-          <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
             {paymentRequest.pay_in?.bank_name ? (
               <ReceiptMetric
                 label="Bank"
@@ -466,10 +467,11 @@ function PaymentReceiptPanel({
 
       <button
         onClick={onCopy}
-        className="btn-secondary w-full justify-center rounded-2xl border-white/15 bg-white/8 py-3 text-white hover:bg-white/12"
+        disabled={!canCopyPaymentDetail}
+        className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white px-4 text-sm font-semibold text-slate-950 transition-all hover:bg-slate-100 disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-white/10 disabled:text-white/35"
       >
         <Copy className="h-4 w-4" />
-        {copied ? "Copied" : `Copy ${isCryptoPayment ? "Address" : "Account"}`}
+        {copied ? "Copied" : canCopyPaymentDetail ? `Copy ${isCryptoPayment ? "Address" : "Account"}` : "Waiting for account"}
       </button>
 
       {paymentRequest.pay_in?.expires_at ? (
@@ -595,11 +597,11 @@ export default function PublicPaymentPage() {
     <PageShell>
       <BrandHeader />
 
-      <div className="overflow-hidden rounded-[2rem] border border-white/80 bg-white/92 shadow-[0_28px_80px_rgba(15,23,42,0.08)] backdrop-blur">
+      <div className="overflow-hidden rounded-[2rem] border border-white/80 bg-white/92 shadow-[0_28px_80px_rgba(15,23,42,0.08)] backdrop-blur lg:h-[calc(100vh-5.75rem)]">
         <div className="grid lg:grid-cols-[minmax(0,1.05fr)_minmax(360px,0.95fr)]">
           <InvoicePanel link={link} paymentAmount={paymentAmount} />
 
-          <section className="bg-[linear-gradient(180deg,_#0f172a_0%,_#111f2f_100%)] p-6 text-white sm:p-8 lg:p-10">
+          <section className="bg-[linear-gradient(180deg,_#0f172a_0%,_#111f2f_100%)] p-5 text-white sm:p-6 lg:p-8">
             {!paymentRequest ? (
               <CheckoutPanel
                 link={link}
