@@ -15,6 +15,7 @@ import {
   RecipientRequirement,
   Settlement,
   Transaction,
+  User,
 } from "@/types";
 import {
   DEMO_CHART_DATA,
@@ -169,6 +170,17 @@ export async function getAccount(): Promise<Account> {
   }
 
   return result.data;
+}
+
+export async function getCurrentUser(): Promise<User | null> {
+  const response = await fetch("/api/me", { cache: "no-store" });
+  const result = (await response.json()) as { data?: User | null; error?: string };
+
+  if (!response.ok) {
+    throw new Error(result.error || "Unable to load current user.");
+  }
+
+  return result.data ?? null;
 }
 
 export async function getPaymentLinks(): Promise<PaymentLink[]> {

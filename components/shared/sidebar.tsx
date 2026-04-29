@@ -1,13 +1,16 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { Icon } from "@iconify/react";
 import { useAppStore } from "@/lib/store/app.store";
-import { DEMO_USER } from "@/lib/api/demo-data";
+import { getCurrentUser } from "@/lib/api/service";
+import { EMPTY_USER } from "@/lib/api/empty-data";
+import { getStoredLoginIdentity, resolveDisplayIdentity } from "@/lib/auth/identity";
 
 const NAV_ITEMS = [
   { href: "/overview", label: "Overview", icon: "solar:widget-2-bold-duotone" },
@@ -22,6 +25,8 @@ const BOTTOM_NAV = [{ href: "/settings", label: "Settings", icon: "solar:setting
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { data: currentUser } = useQuery({ queryKey: ["current-user"], queryFn: getCurrentUser });
+  const [storedIdentity, setStoredIdentity] = useState(() => getStoredLoginIdentity());
   const {
     sidebarOpen,
     toggleSidebar,
@@ -31,10 +36,24 @@ export function Sidebar() {
   } = useAppStore();
 
   const showExpanded = mobileSidebarOpen || sidebarOpen;
+  const resolvedIdentity = resolveDisplayIdentity(currentUser, storedIdentity);
+  const displayedUser = resolvedIdentity ? { ...EMPTY_USER, ...resolvedIdentity } : EMPTY_USER;
+  const initials =
+    displayedUser.full_name
+      .split(" ")
+      .filter(Boolean)
+      .map((name) => name[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase() || "WU";
 
   useEffect(() => {
     closeMobileSidebar();
   }, [pathname, closeMobileSidebar]);
+
+  useEffect(() => {
+    setStoredIdentity(getStoredLoginIdentity());
+  }, []);
 
   return (
     <>
@@ -130,16 +149,16 @@ export function Sidebar() {
           {showExpanded ? (
             <div className="p-3 rounded-xl bg-secondary/50 flex items-center gap-2.5 border border-border/30">
               <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center font-bold text-[10px] shadow-sm border border-border/40 text-primary">
-                {DEMO_USER.full_name.split(" ").map(n => n[0]).join("")}
+                {initials}
               </div>
               <div className="min-w-0">
-                <p className="text-[11px] font-bold truncate leading-none mb-0.5 text-slate-800">{DEMO_USER.full_name}</p>
-                <p className="text-[9px] text-muted-foreground truncate">{DEMO_USER.email}</p>
+                <p className="text-[11px] font-bold truncate leading-none mb-0.5 text-slate-800">{displayedUser.full_name}</p>
+                <p className="text-[9px] text-muted-foreground truncate">{displayedUser.email}</p>
               </div>
             </div>
           ) : (
              <div className="w-8 h-8 mx-auto rounded-lg bg-secondary/50 flex items-center justify-center font-bold text-[9px] border border-border/30 text-primary">
-                {DEMO_USER.full_name.split(" ").map(n => n[0]).join("")}
+                {initials}
              </div>
           )}
 

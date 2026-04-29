@@ -1,11 +1,9 @@
 import { NextRequest } from "next/server";
 import {
-  DEMO_ACCOUNT,
   DEMO_TRANSACTIONS,
   DEMO_PAYMENT_LINKS,
   DEMO_STATS,
   DEMO_SETTLEMENTS,
-  DEMO_USER,
 } from "@/lib/api/demo-data";
 
 const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions";
@@ -21,13 +19,13 @@ function buildSystemPrompt(): string {
 You have full, live context of the user's business. Use this data to give specific, helpful, data-driven answers.
 
 USER PROFILE:
-- Name: ${DEMO_USER.full_name}
-- Business: ${DEMO_USER.business_name}
+- Name: Workspace User
+- Business: Active workspace
 - Country: Nigeria (NGN)
-- KYC Status: Verified
+- KYC Status: Unknown
 
 ACCOUNT SUMMARY:
-- Available Balance: $${DEMO_ACCOUNT.balance_usd.toLocaleString()} USD (≈ ₦${DEMO_ACCOUNT.balance_local.toLocaleString()} NGN)
+- Available Balance: Not loaded from live profile context
 
 DASHBOARD STATS:
 - Total Received (all-time): $${DEMO_STATS.total_received_usd.toLocaleString()} USD

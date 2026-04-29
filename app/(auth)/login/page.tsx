@@ -3,18 +3,60 @@
 import Image from "next/image";
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { ArrowRight, LockKeyhole, Mail } from "lucide-react";
+import { APP_SESSION_COOKIE, APP_SESSION_MAX_AGE, APP_USER_EMAIL_COOKIE, APP_USER_NAME_COOKIE } from "@/lib/auth/session";
+import { deriveFullName, storeLoginIdentity } from "@/lib/auth/identity";
+import { createClient } from "@/lib/supabase/client";
+import { loginSchema } from "@/lib/validations";
 
 export default function LoginPage() {
-  const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    setError(null);
+
+    const parsed = loginSchema.safeParse({ email, password });
+    if (!parsed.success) {
+      setError(parsed.error.issues[0]?.message || "Enter a valid email and password.");
+      return;
+    }
+
     setLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    router.push("/overview");
+    try {
+      const supabase = createClient();
+      const { data, error: signInError } = await supabase.auth.signInWithPassword(parsed.data);
+      setLoading(false);
+
+      if (signInError) {
+        setError(signInError.message);
+        return;
+      }
+
+      if (!data.session || !data.user) {
+        setError("Sign in did not create a session.");
+        return;
+      }
+
+      const resolvedEmail = data.user.email ?? parsed.data.email;
+      const resolvedName =
+        (typeof data.user.user_metadata.full_name === "string" && data.user.user_metadata.full_name) ||
+        deriveFullName(resolvedEmail);
+
+      document.cookie = `${APP_SESSION_COOKIE}=1; Path=/; Max-Age=${APP_SESSION_MAX_AGE}; SameSite=Lax`;
+      document.cookie = `${APP_USER_EMAIL_COOKIE}=${encodeURIComponent(resolvedEmail)}; Path=/; Max-Age=${APP_SESSION_MAX_AGE}; SameSite=Lax`;
+      document.cookie = `${APP_USER_NAME_COOKIE}=${encodeURIComponent(resolvedName)}; Path=/; Max-Age=${APP_SESSION_MAX_AGE}; SameSite=Lax`;
+      storeLoginIdentity({ email: resolvedEmail, full_name: resolvedName });
+    } catch {
+      setLoading(false);
+      setError("Unable to reach the login service. Check your connection and try again.");
+      return;
+    }
+
+    window.location.assign("/overview");
   };
 
   return (
@@ -31,13 +73,12 @@ export default function LoginPage() {
         />
         <div>
           <p className="font-display text-xl font-bold">Fluent</p>
-          <p className="text-xs text-muted-foreground">Demo login</p>
         </div>
       </div>
 
       <h1 className="font-display text-3xl font-bold tracking-tight text-busha-slate">Welcome back</h1>
       <p className="mt-2 text-sm leading-6 text-muted-foreground">
-        Sign in to explore the demo workspace and test the payment request flow.
+        Sign in with your real account to access your workspace immediately.
       </p>
 
       <form onSubmit={handleSubmit} className="mt-8 space-y-4">
@@ -45,7 +86,13 @@ export default function LoginPage() {
           <label className="mb-1.5 block text-sm font-medium">Email</label>
           <div className="relative">
             <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <input type="email" defaultValue="ade@adebayodesigns.com" className="input-base pl-10" />
+            <input
+              type="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              autoComplete="email"
+              className="input-base pl-10"
+            />
           </div>
         </div>
 
@@ -53,18 +100,26 @@ export default function LoginPage() {
           <label className="mb-1.5 block text-sm font-medium">Password</label>
           <div className="relative">
             <LockKeyhole className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <input type="password" defaultValue="demo1234" className="input-base pl-10" />
+            <input
+              type="password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              autoComplete="current-password"
+              className="input-base pl-10"
+            />
           </div>
         </div>
 
+        {error ? (
+          <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+            {error}
+          </div>
+        ) : null}
+
         <button type="submit" disabled={loading} className="btn-primary mt-2 w-full justify-center py-3 text-base">
-          {loading ? "Signing in..." : "Enter demo workspace"}
+          {loading ? "Signing in..." : "Sign in"}
         </button>
       </form>
-
-      <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-        Demo mode is enabled. Any credentials will continue to the product walkthrough.
-      </div>
 
       <p className="mt-5 text-center text-sm text-muted-foreground">
         Need an account?{" "}

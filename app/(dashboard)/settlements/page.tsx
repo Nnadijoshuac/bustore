@@ -8,7 +8,7 @@ import { Topbar } from "@/components/shared/topbar";
 import { StatusBadge } from "@/components/ui/badge";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { useToast } from "@/components/ui/toaster";
-import { DEMO_ACCOUNT } from "@/lib/api/demo-data";
+import { EMPTY_ACCOUNT } from "@/lib/api/empty-data";
 import { cn } from "@/lib/utils";
 import type { Settlement } from "@/types";
 
@@ -53,7 +53,7 @@ export default function SettlementsPage() {
   const selectedRecipientRecord = recipients.find((recipient) => recipient.id === recipientId);
   const quoteCurrency = selectedRecipientRecord?.currency || "NGN";
   const quoteErrorMessage = "Live Busha quote unavailable. Demo estimate shown below.";
-  const displayedAccount = account ?? DEMO_ACCOUNT;
+  const displayedAccount = account ?? EMPTY_ACCOUNT;
 
   const {
     data: payoutQuote,

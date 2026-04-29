@@ -13,7 +13,7 @@ import {
 } from "recharts";
 import { Icon } from "@iconify/react";
 import { getAccount, getChartData, getDashboardStats, getTransactions } from "@/lib/api/service";
-import { DEMO_ACCOUNT } from "@/lib/api/demo-data";
+import { EMPTY_ACCOUNT } from "@/lib/api/empty-data";
 import { Topbar } from "@/components/shared/topbar";
 import { StatusBadge } from "@/components/ui/badge";
 import { StatCardSkeleton } from "@/components/ui/skeleton";
@@ -44,7 +44,7 @@ export default function OverviewPage() {
   });
 
   const recentTxns = txnResponse?.data?.slice(0, 5) ?? [];
-  const displayedAccount = account ?? DEMO_ACCOUNT;
+  const displayedAccount = account ?? EMPTY_ACCOUNT;
 
   return (
     <div className="min-h-screen pb-10">

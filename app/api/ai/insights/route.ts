@@ -1,6 +1,5 @@
 import { NextRequest } from "next/server";
 import {
-  DEMO_ACCOUNT,
   DEMO_TRANSACTIONS,
   DEMO_PAYMENT_LINKS,
   DEMO_STATS,
@@ -33,7 +32,7 @@ export async function POST(_req: NextRequest) {
 Analyze this business snapshot and return EXACTLY 3 short, specific insight bullets. Each bullet must be one sentence, data-driven, and actionable. No markdown, no headers, just 3 lines — one bullet per line, starting with a bullet "•".
 
 BUSINESS DATA:
-- Balance: $${DEMO_ACCOUNT.balance_usd.toLocaleString()} USD
+- Balance: $0 USD
 - Total Received: $${DEMO_STATS.total_received_usd.toLocaleString()} (+${DEMO_STATS.total_received_change}% MoM)
 - Avg Transaction: $${DEMO_STATS.avg_transaction_usd.toLocaleString()}
 - Pending Settlement: $${DEMO_STATS.pending_settlements_usd.toLocaleString()}

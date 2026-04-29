@@ -1,20 +1,37 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Topbar } from "@/components/shared/topbar";
-import { DEMO_USER, DEMO_ACCOUNT } from "@/lib/api/demo-data";
-import { getAccount } from "@/lib/api/service";
+import { EMPTY_ACCOUNT, EMPTY_USER } from "@/lib/api/empty-data";
+import { getAccount, getCurrentUser } from "@/lib/api/service";
 import { formatCurrency } from "@/lib/utils";
 import { Icon } from "@iconify/react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/toaster";
+import { getStoredLoginIdentity, resolveDisplayIdentity } from "@/lib/auth/identity";
 
 export default function SettingsPage() {
   const [panelOpen, setPanelOpen] = useState(false);
+  const [storedIdentity, setStoredIdentity] = useState(() => getStoredLoginIdentity());
   const { toast } = useToast();
   const { data: account } = useQuery({ queryKey: ["account"], queryFn: getAccount });
-  const displayedAccount = account ?? DEMO_ACCOUNT;
+  const { data: currentUser } = useQuery({ queryKey: ["current-user"], queryFn: getCurrentUser });
+  const displayedAccount = account ?? EMPTY_ACCOUNT;
+  const resolvedIdentity = resolveDisplayIdentity(currentUser, storedIdentity);
+  const displayedUser = resolvedIdentity ? { ...EMPTY_USER, ...resolvedIdentity } : EMPTY_USER;
+  const initials =
+    displayedUser.full_name
+      .split(" ")
+      .filter(Boolean)
+      .map((name) => name[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase() || "WU";
+
+  useEffect(() => {
+    setStoredIdentity(getStoredLoginIdentity());
+  }, []);
 
   return (
     <div className="relative min-h-screen">
@@ -27,17 +44,17 @@ export default function SettingsPage() {
           <div className="flex items-center gap-5">
             <div className="relative">
               <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-[1.5rem] border-2 border-white bg-primary/10 text-xl font-bold text-primary shadow-sm">
-                {DEMO_USER.full_name.split(" ").map(n => n[0]).join("")}
+                {initials}
               </div>
               <button className="absolute -bottom-1 -right-1 rounded-lg border border-border bg-white p-1.5 text-muted-foreground shadow-md">
                 <Icon icon="solar:camera-bold-duotone" className="w-3.5 h-3.5" />
               </button>
             </div>
             <div>
-              <h2 className="font-display font-bold text-xl tracking-tight text-slate-900">{DEMO_USER.full_name}</h2>
+              <h2 className="font-display font-bold text-xl tracking-tight text-slate-900">{displayedUser.full_name}</h2>
               <div className="flex items-center gap-2.5 mt-1">
                 <p className="text-xs text-muted-foreground font-medium flex items-center gap-1.5">
-                   <Icon icon="solar:letter-bold-duotone" className="w-3.5 h-3.5 text-primary/60" /> {DEMO_USER.email}
+                   <Icon icon="solar:letter-bold-duotone" className="w-3.5 h-3.5 text-primary/60" /> {displayedUser.email}
                 </p>
                 <div className="w-1 h-1 rounded-full bg-border" />
                 <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg bg-emerald-50 text-emerald-700 text-[9px] font-bold uppercase tracking-wider border border-emerald-100">
@@ -144,11 +161,11 @@ export default function SettingsPage() {
                     <div className="space-y-3">
                       <div className="relative">
                         <Icon icon="solar:user-bold-duotone" className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                        <input defaultValue={DEMO_USER.full_name} className="input-base pl-9 h-10 font-bold text-slate-800" placeholder="Full Name" />
+                        <input defaultValue={displayedUser.full_name} className="input-base pl-9 h-10 font-bold text-slate-800" placeholder="Full Name" />
                       </div>
                       <div className="relative">
                         <Icon icon="solar:letter-bold-duotone" className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                        <input defaultValue={DEMO_USER.email} type="email" className="input-base pl-9 h-10 font-bold text-slate-800" placeholder="Email Address" />
+                        <input defaultValue={displayedUser.email} type="email" className="input-base pl-9 h-10 font-bold text-slate-800" placeholder="Email Address" />
                       </div>
                     </div>
                   </div>
@@ -158,7 +175,7 @@ export default function SettingsPage() {
                     <div className="space-y-3">
                       <div className="relative">
                         <Icon icon="solar:shop-bold-duotone" className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                        <input defaultValue={DEMO_USER.business_name ?? ""} className="input-base pl-9 h-10 font-bold text-slate-800" placeholder="Business Name" />
+                        <input defaultValue={displayedUser.business_name ?? ""} className="input-base pl-9 h-10 font-bold text-slate-800" placeholder="Business Name" />
                       </div>
                       <div className="grid grid-cols-2 gap-3">
                         <div>
