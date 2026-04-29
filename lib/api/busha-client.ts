@@ -34,11 +34,28 @@ export function getBushaCheckoutUrl(linkValue: string) {
     return "";
   }
 
+  const baseUrl = process.env.BUSHA_API_BASE_URL || DEFAULT_BUSHA_API_BASE_URL;
+  const checkoutBase =
+    baseUrl.includes("sandbox") || baseUrl.includes("staging")
+      ? "https://staging.dash.busha.io/checkout"
+      : "https://dash.busha.io/checkout";
+
   if (linkValue.startsWith("http://") || linkValue.startsWith("https://")) {
-    return linkValue;
+    try {
+      const url = new URL(linkValue);
+
+      if (url.hostname === "pay.busha.io" && url.pathname.startsWith("/charges/")) {
+        const token = url.pathname.split("/").filter(Boolean).at(-1);
+        return token ? `${checkoutBase}/${token}` : linkValue;
+      }
+
+      return linkValue;
+    } catch {
+      return linkValue;
+    }
   }
 
-  return `https://pay.busha.io/charges/${linkValue}`;
+  return `${checkoutBase}/${linkValue}`;
 }
 
 async function parseBushaResponse<T>(response: Response): Promise<T> {

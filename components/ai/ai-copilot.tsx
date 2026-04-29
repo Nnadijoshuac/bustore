@@ -116,7 +116,7 @@ export function AICopilot() {
                 <p className="text-[9px] font-bold text-emerald-400 uppercase tracking-widest leading-none">live assistant</p>
               </div>
             </div>
-            <button onClick={() => setIsOpen(false)} className="rounded-lg p-1.5 hover:bg-white/10 transition-colors">
+            <button onClick={() => setIsOpen(false)} className="rounded-lg p-1.5">
               <Icon icon="solar:close-circle-bold-duotone" className="h-5 w-5 text-white/60" />
             </button>
           </div>
@@ -154,7 +154,7 @@ export function AICopilot() {
                    <button 
                     key={p} 
                     onClick={() => handleSend(p)}
-                    className="text-[10px] font-bold px-3 py-1.5 rounded-lg bg-white border border-border/60 text-slate-700 hover:border-primary/40 hover:bg-primary/5 transition-all shadow-sm"
+                    className="text-[10px] font-bold px-3 py-1.5 rounded-lg bg-white border border-border/60 text-slate-700 shadow-sm"
                    >
                      {p}
                    </button>
@@ -188,7 +188,7 @@ export function AICopilot() {
         <button
           onClick={() => setIsOpen(true)}
           className={cn(
-            "flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-900 text-white shadow-2xl transition-all hover:scale-105 active:scale-95 group relative",
+            "flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-900 text-white shadow-2xl active:scale-95 relative",
             !sidebarOpen && "md:translate-x-[-12px]"
           )}
         >

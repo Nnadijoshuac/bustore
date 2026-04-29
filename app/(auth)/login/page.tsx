@@ -18,7 +18,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="w-full max-w-[440px] rounded-[2rem] border border-white/70 bg-white/90 p-6 shadow-2xl shadow-slate-200/70 backdrop-blur sm:p-8">
+    <div className="w-full max-w-[440px] rounded-[2rem] border border-white/70 bg-white/90 p-6 shadow-2xl shadow-slate-200/70 sm:p-8">
       <div className="mb-8 flex items-center gap-3">
         <Image
           src="/logo_fluent.png"
@@ -68,12 +68,12 @@ export default function LoginPage() {
 
       <p className="mt-5 text-center text-sm text-muted-foreground">
         Need an account?{" "}
-        <Link href="/register" className="font-medium text-primary hover:underline">
+        <Link href="/register" className="font-medium text-primary">
           Create one
         </Link>
       </p>
 
-      <Link href="/" className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-busha-slate/70 hover:text-busha-slate">
+      <Link href="/" className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-busha-slate/70">
         Back to product overview
         <ArrowRight className="h-4 w-4" />
       </Link>

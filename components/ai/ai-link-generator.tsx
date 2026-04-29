@@ -48,9 +48,7 @@ export function AILinkGenerator({ setValue }: AILinkGeneratorProps) {
   };
 
   return (
-    <div className="space-y-3 rounded-2xl bg-slate-900 p-4 text-white shadow-xl relative overflow-hidden group">
-      <div className="absolute top-0 right-0 w-24 h-24 bg-primary opacity-5 rounded-full translate-x-1/2 -translate-y-1/2 blur-2xl group-hover:opacity-10 transition-opacity" />
-      
+    <div className="space-y-3 rounded-2xl bg-slate-900 p-4 text-white shadow-xl relative overflow-hidden">
       <div className="flex items-center gap-2">
         <Image
           src="/logo_fluent_ai.png"
@@ -87,9 +85,9 @@ export function AILinkGenerator({ setValue }: AILinkGeneratorProps) {
         disabled={!prompt.trim() || isGenerating}
         className={cn(
           "flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2 text-[10px] font-bold uppercase tracking-[0.1em] transition-all",
-          generated 
+          generated
             ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" 
-            : "bg-primary text-slate-900 hover:scale-[1.02] active:scale-[0.98]"
+            : "bg-primary text-slate-900 active:scale-[0.98]"
         )}
       >
         {isGenerating ? (

@@ -11,6 +11,7 @@ const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions";
 const MODEL = process.env.OPENROUTER_MODEL ?? "openai/gpt-4o-mini";
 
 export async function POST(_req: NextRequest) {
+  void _req;
   try {
     const apiKey = process.env.OPENROUTER_API_KEY;
     if (!apiKey) {

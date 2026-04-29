@@ -41,7 +41,7 @@ export function AIInsightsCard() {
         <button 
           onClick={() => refetch()} 
           disabled={isFetching}
-          className="p-1.5 hover:bg-secondary rounded-lg transition-colors text-muted-foreground"
+          className="p-1.5 rounded-lg text-muted-foreground"
         >
           <Icon icon="solar:restart-bold-duotone" className={cn("w-4 h-4", isFetching && "animate-spin")} />
         </button>
@@ -57,9 +57,9 @@ export function AIInsightsCard() {
           ))
         ) : (
           bullets.map((bullet: string, i: number) => (
-            <div key={i} className="flex gap-3 items-start group/item">
-              <div className="mt-1 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-primary/10 group-hover/item:bg-primary transition-colors">
-                <Icon icon="solar:check-circle-bold-duotone" className="h-2.5 w-2.5 text-primary group-hover/item:text-white" />
+            <div key={i} className="flex gap-3 items-start">
+              <div className="mt-1 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                <Icon icon="solar:check-circle-bold-duotone" className="h-2.5 w-2.5 text-primary" />
               </div>
               <p className="text-[11px] font-medium leading-relaxed text-slate-700">
                 {bullet}
@@ -69,7 +69,6 @@ export function AIInsightsCard() {
         )}
       </div>
 
-      <div className="absolute top-0 right-0 w-32 h-32 bg-primary opacity-5 rounded-full translate-x-1/2 -translate-y-1/2 blur-2xl" />
     </div>
   );
 }

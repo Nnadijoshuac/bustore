@@ -7,16 +7,16 @@ import { cn } from "@/lib/utils";
 // ── Button ────────────────────────────────────────────────────
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 rounded-xl font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 disabled:pointer-events-none disabled:opacity-40 select-none",
+  "inline-flex items-center justify-center gap-2 rounded-xl font-medium duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 disabled:pointer-events-none disabled:opacity-40 select-none",
   {
     variants: {
       variant: {
-        primary:   "bg-brand-500 hover:bg-brand-600 text-white shadow-lg shadow-brand-500/20",
-        secondary: "bg-surface-elevated hover:bg-surface-muted text-white border border-surface-border",
-        ghost:     "hover:bg-surface-elevated text-gray-400 hover:text-white",
-        danger:    "bg-accent-red/10 hover:bg-accent-red/20 text-accent-red border border-accent-red/20",
-        success:   "bg-accent-green/10 hover:bg-accent-green/20 text-accent-green border border-accent-green/20",
-        outline:   "border border-surface-border hover:bg-surface-elevated text-gray-300",
+        primary:   "bg-brand-500 text-white",
+        secondary: "bg-surface-elevated text-white border border-surface-border",
+        ghost:     "text-gray-400",
+        danger:    "bg-accent-red/10 text-accent-red border border-accent-red/20",
+        success:   "bg-accent-green/10 text-accent-green border border-accent-green/20",
+        outline:   "border border-surface-border text-gray-300",
       },
       size: {
         sm:   "h-8  px-3  text-sm",

@@ -125,8 +125,8 @@ export default function RecipientsPage() {
   return (
     <div className="relative min-h-screen">
       <Topbar
-        title="Recipients"
-        description="Payout targets for business settlements"
+        title="Payout Accounts"
+        description="Saved bank accounts and mobile-money destinations for cash-out"
         actions={
           <button onClick={handleAdd} className="btn-primary py-1.5 h-8">
             <Icon icon="solar:user-plus-bold-duotone" className="w-4 h-4" />
@@ -158,10 +158,10 @@ export default function RecipientsPage() {
             <div className="w-14 h-14 rounded-2xl bg-secondary flex items-center justify-center mb-3">
               <Icon icon="solar:bank-bold-duotone" className="w-7 h-7 text-muted-foreground" />
             </div>
-            <h3 className="font-display font-bold text-base text-slate-800">No recipients added</h3>
-            <p className="text-[10px] text-muted-foreground max-w-xs mx-auto mt-0.5">
-              Add bank accounts or mobile wallets to receive settlements.
-            </p>
+              <h3 className="font-display font-bold text-base text-slate-800">No payout accounts added</h3>
+                <p className="text-[10px] text-muted-foreground max-w-xs mx-auto mt-0.5">
+                  Add a bank account or mobile wallet before you cash out.
+                </p>
           </div>
         ) : (
           <div className="space-y-2">
@@ -169,9 +169,9 @@ export default function RecipientsPage() {
               <div
                 key={recipient.id}
                 onClick={() => handleView(recipient)}
-                className="group flex items-center gap-3 bg-card hover:bg-slate-50/50 p-3 rounded-xl transition-all cursor-pointer border border-transparent hover:border-border/50 shadow-sm"
+                className="flex cursor-pointer items-center gap-3 rounded-xl border border-transparent bg-card p-3 shadow-sm"
               >
-                <div className="w-10 h-10 rounded-lg bg-secondary text-muted-foreground flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
+                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-secondary text-muted-foreground">
                   <Icon icon="solar:bank-bold-duotone" className="w-5 h-5" />
                 </div>
                 
@@ -210,7 +210,7 @@ export default function RecipientsPage() {
           panelOpen ? "opacity-100" : "opacity-0 pointer-events-none"
         )}
       >
-        <div className="absolute inset-0 bg-black/10 backdrop-blur-[1px]" onClick={() => setPanelOpen(false)} />
+        <div className="absolute inset-0 bg-black/10" onClick={() => setPanelOpen(false)} />
         
         <div 
           className={cn(
@@ -231,7 +231,7 @@ export default function RecipientsPage() {
               </div>
               <button 
                 onClick={() => setPanelOpen(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-secondary transition-colors"
+                className="flex h-8 w-8 items-center justify-center rounded-full"
               >
                 <Icon icon="solar:close-circle-bold-duotone" className="w-5 h-5 text-muted-foreground" />
               </button>
@@ -269,7 +269,7 @@ export default function RecipientsPage() {
                         <div className="flex items-center gap-1.5">
                           <span className={cn(
                             "w-1.5 h-1.5 rounded-full",
-                            selectedRecipient.is_verified ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]" : "bg-amber-500"
+                            selectedRecipient.is_verified ? "bg-emerald-500" : "bg-amber-500"
                           )} />
                           <p className="text-xs font-bold text-slate-800">{selectedRecipient.is_verified ? "Verified" : "Pending"}</p>
                         </div>
@@ -280,7 +280,7 @@ export default function RecipientsPage() {
                   <div className="p-4 rounded-xl bg-primary/5 flex items-start gap-3 border border-primary/10">
                     <Icon icon="solar:info-circle-bold-duotone" className="w-4 h-4 text-primary mt-0.5" />
                     <p className="text-[10px] text-slate-600 leading-relaxed font-medium">
-                      This recipient is active. Settlements sent to this account usually reflect within 15-30 minutes during business hours.
+                      This payout account is active. Cash-outs sent here usually reflect within 15-30 minutes during business hours.
                     </p>
                   </div>
                 </div>
@@ -309,7 +309,7 @@ export default function RecipientsPage() {
                   <div className="space-y-3 pt-4 border-t border-border/40">
                     <div className="flex items-center justify-between px-1">
                        <h6 className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.2em]">Account Details</h6>
-                       <button onClick={() => refetch()} className="text-[9px] font-bold text-primary flex items-center gap-1 hover:underline uppercase tracking-wider">
+                       <button onClick={() => refetch()} className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-primary">
                          <Icon icon="solar:restart-bold-duotone" className={cn("w-3 h-3", isLoadingRequirements && "animate-spin")} />
                          Refresh Fields
                        </button>
@@ -350,7 +350,7 @@ export default function RecipientsPage() {
                 <button 
                   type="button" 
                   onClick={() => setPanelOpen(false)}
-                  className="flex-1 h-10 px-4 rounded-xl bg-white border border-border font-bold text-xs hover:bg-slate-50 transition-colors"
+                  className="h-10 flex-1 rounded-xl border border-border bg-white px-4 text-xs font-bold"
                 >
                   {selectedRecipient ? "Close" : "Cancel"}
                 </button>

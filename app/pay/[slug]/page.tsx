@@ -2,7 +2,8 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import Link from "next/link";
+import { useParams, useSearchParams } from "next/navigation";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import QRCode from "qrcode";
 import type { PaymentLink, PaymentRequest } from "@/types";
@@ -14,10 +15,8 @@ const LOCAL_STORAGE_PAYMENT_LINKS_KEY = "bushapay_payment_links";
 const PAYMENT_METHOD_OPTIONS = [
   { value: "USDT", label: "USDT", description: "Stablecoin payment" },
   { value: "BTC", label: "BTC", description: "Bitcoin payment" },
-  { value: "NGN", label: "NGN", description: "Naira collection" },
-  { value: "USD", label: "USD", description: "Dollar collection" },
-  { value: "KES", label: "KES", description: "Kenyan shilling collection" },
 ] as const;
+const EMBED_MODES = ["card", "qr"] as const;
 
 function formatInvoiceAmount(link: PaymentLink, fallbackAmount: string) {
   return link.amount?.toLocaleString() || fallbackAmount || "Custom";
@@ -132,10 +131,10 @@ function PaymentMethodGrid({
             key={option.value}
             type="button"
             onClick={() => onSelect(option.value)}
-            className={`rounded-xl border px-3 py-2.5 text-left transition-all ${
+            className={`rounded-xl border px-3 py-2.5 text-left ${
               isSelected
                 ? "border-white bg-white text-slate-950 shadow-sm"
-                : "border-white/10 bg-transparent text-white hover:border-white/30 hover:bg-white/[0.03]"
+                : "border-white/10 bg-transparent text-white"
             }`}
           >
             <p className={isSelected ? "text-sm font-semibold text-slate-950" : "text-sm font-semibold text-white"}>{option.label}</p>
@@ -326,7 +325,7 @@ function CheckoutPanel({
       <button
         type="submit"
         disabled={isPending || !paymentAmount}
-        className="btn-primary h-11 w-full justify-center rounded-2xl text-base shadow-lg shadow-primary/20"
+        className="btn-primary h-11 w-full justify-center rounded-2xl text-base"
       >
         {isPending ? (
           <span className="flex items-center gap-2">
@@ -468,7 +467,7 @@ function PaymentReceiptPanel({
       <button
         onClick={onCopy}
         disabled={!canCopyPaymentDetail}
-        className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white px-4 text-sm font-semibold text-slate-950 transition-all hover:bg-slate-100 disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-white/10 disabled:text-white/35"
+        className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white px-4 text-sm font-semibold text-slate-950 disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-white/10 disabled:text-white/35"
       >
         <Copy className="h-4 w-4" />
         {copied ? "Copied" : canCopyPaymentDetail ? `Copy ${isCryptoPayment ? "Address" : "Account"}` : "Waiting for account"}
@@ -494,14 +493,97 @@ function PaymentReceiptPanel({
   );
 }
 
+function EmbeddedCheckoutCard({ link, checkoutUrl }: { link: PaymentLink; checkoutUrl: string }) {
+  return (
+    <div className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-400">Fluent Checkout</p>
+          <h1 className="mt-2 font-display text-xl font-semibold tracking-[-0.04em] text-slate-950">{link.title}</h1>
+          <p className="mt-2 text-sm leading-6 text-slate-600">{link.description || "Accept payment through your Fluent checkout page."}</p>
+        </div>
+        <div className="rounded-full bg-emerald-50 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-emerald-700">
+          Live
+        </div>
+      </div>
+
+      <div className="mt-5 rounded-2xl bg-slate-950 p-4 text-white">
+        <p className="text-[10px] uppercase tracking-[0.22em] text-white/45">Amount</p>
+        <p className="mt-2 font-display text-3xl font-semibold tracking-[-0.05em]">
+          {link.amount ? formatCurrency(link.amount, link.currency) : `Flexible ${link.currency}`}
+        </p>
+        <p className="mt-2 text-xs text-white/60">Powered by Fluent x Busha</p>
+      </div>
+
+      <Link
+        href={checkoutUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-5 inline-flex h-11 w-full items-center justify-center rounded-2xl bg-primary px-4 text-sm font-semibold text-primary-foreground"
+      >
+        Open checkout
+      </Link>
+    </div>
+  );
+}
+
+function EmbeddedQrCard({
+  link,
+  checkoutUrl,
+  qrCodeUrl,
+}: {
+  link: PaymentLink;
+  checkoutUrl: string;
+  qrCodeUrl: string;
+}) {
+  return (
+    <div className="rounded-[1.5rem] border border-slate-200 bg-white p-5 text-center shadow-sm">
+      <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-400">Scan To Pay</p>
+      <h1 className="mt-2 font-display text-xl font-semibold tracking-[-0.04em] text-slate-950">{link.title}</h1>
+      <p className="mt-1 text-sm text-slate-600">
+        {link.amount ? formatCurrency(link.amount, link.currency) : `Open link to enter amount`}
+      </p>
+
+      <div className="mt-5 flex justify-center">
+        <div className="rounded-[1.5rem] border border-slate-200 bg-slate-950 p-4">
+          {qrCodeUrl ? (
+            <Image
+              src={qrCodeUrl}
+              alt="Checkout QR code"
+              width={220}
+              height={220}
+              unoptimized
+              className="h-full w-full max-w-[180px]"
+            />
+          ) : (
+            <div className="h-[180px] w-[180px] animate-pulse rounded-2xl bg-white/10" />
+          )}
+        </div>
+      </div>
+
+      <Link
+        href={checkoutUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-5 inline-flex h-10 items-center justify-center rounded-full border border-slate-200 px-5 text-sm font-semibold text-slate-800"
+      >
+        Open hosted checkout
+      </Link>
+    </div>
+  );
+}
+
 export default function PublicPaymentPage() {
   const { slug } = useParams();
+  const searchParams = useSearchParams();
   const slugValue = Array.isArray(slug) ? slug[0] : slug;
   const [amount, setAmount] = useState("");
   const [copied, setCopied] = useState(false);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<
     (typeof PAYMENT_METHOD_OPTIONS)[number]["value"] | null
   >(null);
+  const embedParam = searchParams.get("embed");
+  const embedMode = EMBED_MODES.find((mode) => mode === embedParam);
 
   useEffect(() => {
     window.localStorage.removeItem(LOCAL_STORAGE_PAYMENT_LINKS_KEY);
@@ -525,7 +607,7 @@ export default function PublicPaymentPage() {
   const paymentAmount = link?.amount ? String(link.amount) : amount;
   const paymentMethod =
     selectedPaymentMethod ||
-    PAYMENT_METHOD_OPTIONS.find((option) => option.value === link?.currency)?.value ||
+    PAYMENT_METHOD_OPTIONS.find((option) => option.value === link?.target_currency)?.value ||
     "USDT";
 
   const paymentRequestMutation = useMutation({
@@ -533,8 +615,9 @@ export default function PublicPaymentPage() {
       createPaymentRequest({
         payment_link_id: link!.id,
         payment_link_slug: link!.slug,
-        amount: paymentAmount,
+        quote_amount: paymentAmount,
         quote_currency: link!.currency,
+        source_currency: paymentMethod,
         target_currency: paymentMethod,
         email: "checkout@fluent.so",
         name: "Guest Payer",
@@ -558,6 +641,12 @@ export default function PublicPaymentPage() {
     queryKey: ["payment-request-qr", qrPayload],
     queryFn: () => QRCode.toDataURL(qrPayload, { margin: 1, width: 220 }),
     enabled: Boolean(qrPayload),
+  });
+  const checkoutUrl = typeof window !== "undefined" ? `${window.location.origin}/pay/${slugValue}` : "";
+  const { data: checkoutQrCodeUrl = "" } = useQuery({
+    queryKey: ["payment-link-checkout-qr", checkoutUrl],
+    queryFn: () => QRCode.toDataURL(checkoutUrl, { margin: 1, width: 220 }),
+    enabled: Boolean(checkoutUrl && embedMode === "qr"),
   });
 
   if (isLoading) {
@@ -593,11 +682,27 @@ export default function PublicPaymentPage() {
     window.setTimeout(() => setCopied(false), 1500);
   };
 
+  if (embedMode === "card") {
+    return (
+      <div className="min-h-screen bg-transparent p-3">
+        <EmbeddedCheckoutCard link={link} checkoutUrl={checkoutUrl} />
+      </div>
+    );
+  }
+
+  if (embedMode === "qr") {
+    return (
+      <div className="min-h-screen bg-transparent p-3">
+        <EmbeddedQrCard link={link} checkoutUrl={checkoutUrl} qrCodeUrl={checkoutQrCodeUrl} />
+      </div>
+    );
+  }
+
   return (
     <PageShell>
       <BrandHeader />
 
-      <div className="overflow-hidden rounded-[2rem] border border-white/80 bg-white/92 shadow-[0_28px_80px_rgba(15,23,42,0.08)] backdrop-blur lg:h-[calc(100vh-5.75rem)]">
+      <div className="overflow-hidden rounded-[2rem] border border-white/80 bg-white/92 shadow-[0_28px_80px_rgba(15,23,42,0.08)] lg:h-[calc(100vh-5.75rem)]">
         <div className="grid lg:grid-cols-[minmax(0,1.05fr)_minmax(360px,0.95fr)]">
           <InvoicePanel link={link} paymentAmount={paymentAmount} />
 

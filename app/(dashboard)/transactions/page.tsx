@@ -46,8 +46,8 @@ function SectionFilters({
                 key={filter}
                 onClick={() => onTypeChange(filter)}
                 className={cn(
-                  "rounded-lg px-3 py-1 text-[9px] font-bold uppercase tracking-wider transition-all",
-                  typeFilter === filter ? "bg-white text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                  "rounded-lg px-3 py-1 text-[9px] font-bold uppercase tracking-wider",
+                  typeFilter === filter ? "bg-white text-foreground shadow-sm" : "text-muted-foreground"
                 )}
               >
                 {filter}
@@ -64,10 +64,10 @@ function SectionFilters({
             key={filter}
             onClick={() => onStatusChange(filter)}
             className={cn(
-              "whitespace-nowrap rounded-full border px-3 py-1 text-[9px] font-bold uppercase tracking-wider transition-all",
+               "whitespace-nowrap rounded-full border px-3 py-1 text-[9px] font-bold uppercase tracking-wider",
               statusFilter === filter
                 ? "border-slate-900 bg-slate-900 text-white"
-                : "border-border bg-white text-muted-foreground hover:border-slate-400"
+                : "border-border bg-white text-muted-foreground"
             )}
           >
             {filter}
@@ -90,11 +90,11 @@ function TransactionListItem({
   return (
     <div
       onClick={() => onOpen(txn)}
-      className="group flex cursor-pointer items-center gap-3 rounded-xl border border-transparent bg-card p-3 shadow-sm transition-all hover:border-border/50 hover:bg-slate-50/50"
+      className="flex cursor-pointer items-center gap-3 rounded-xl border border-transparent bg-card p-3 shadow-sm"
     >
       <div
         className={cn(
-          "flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg transition-transform group-hover:scale-105",
+          "flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg",
           isIncoming ? "bg-emerald-50 text-emerald-600" : "bg-slate-100 text-slate-500"
         )}
       >
@@ -234,7 +234,7 @@ function ReceiptDrawer({
         <div className="flex gap-2.5">
           <button
             onClick={onClose}
-            className="h-10 flex-1 rounded-xl border border-border bg-white px-4 text-xs font-bold transition-colors hover:bg-slate-50"
+            className="h-10 flex-1 rounded-xl border border-border bg-white px-4 text-xs font-bold"
           >
             Close
           </button>

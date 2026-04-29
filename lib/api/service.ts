@@ -1,71 +1,175 @@
 import {
-  Transaction,
+  Account,
+  ApiResponse,
+  ChartDataPoint,
+  CreateCustomerInput,
+  CreatePaymentLinkInput,
+  CreateRecipientInput,
+  CreateSettlementInput,
+  Customer,
+  DashboardStats,
   PaymentLink,
   PaymentRequest,
+  Quote,
   Recipient,
   RecipientRequirement,
   Settlement,
-  DashboardStats,
-  ChartDataPoint,
-  Webhook,
-  WebhookDelivery,
-  Customer,
-  CreateCustomerInput,
-  CreateRecipientInput,
-  CreatePaymentLinkInput,
-  CreateSettlementInput,
-  ApiResponse,
+  Transaction,
 } from "@/types";
 import {
-  DEMO_TRANSACTIONS,
-  DEMO_RECIPIENTS,
-  DEMO_SETTLEMENTS,
-  DEMO_STATS,
   DEMO_CHART_DATA,
-  DEMO_ACCOUNT,
+  DEMO_STATS,
 } from "./demo-data";
 
-// Helper: simulate async latency in demo mode
 const delay = (ms = 400) => new Promise((r) => setTimeout(r, ms));
 
-// ─── Dashboard ───────────────────────────────────────────────
+function isWithinLastDays(dateString: string, days: number, now = new Date()) {
+  const date = new Date(dateString);
+  const diff = now.getTime() - date.getTime();
+  return diff >= 0 && diff <= days * 24 * 60 * 60 * 1000;
+}
+
+function sumTransactions(transactions: Transaction[], predicate: (transaction: Transaction) => boolean) {
+  return transactions.filter(predicate).reduce((sum, transaction) => sum + transaction.amount, 0);
+}
 
 export async function getDashboardStats(): Promise<DashboardStats> {
-  // Try to get real count of payment links if possible, else fallback to demo
   try {
-    const links = await getPaymentLinks();
-    const activeLinksCount = links.filter(l => l.status === "active").length;
+    const [links, transactionsResponse, customers] = await Promise.all([
+      getPaymentLinks(),
+      getTransactions(),
+      getCustomers(),
+    ]);
+    const transactions = transactionsResponse.data;
+    const now = new Date();
+    const currentWindowStart = new Date(now);
+    currentWindowStart.setDate(currentWindowStart.getDate() - 30);
+    const previousWindowStart = new Date(currentWindowStart);
+    previousWindowStart.setDate(previousWindowStart.getDate() - 30);
+
+    const currentWindow = transactions.filter((transaction) => {
+      const createdAt = new Date(transaction.created_at).getTime();
+      return createdAt >= currentWindowStart.getTime() && createdAt <= now.getTime();
+    });
+    const previousWindow = transactions.filter((transaction) => {
+      const createdAt = new Date(transaction.created_at).getTime();
+      return createdAt >= previousWindowStart.getTime() && createdAt < currentWindowStart.getTime();
+    });
+
+    const totalReceivedCurrent = sumTransactions(
+      currentWindow,
+      (transaction) => transaction.type === "incoming" && transaction.status === "completed"
+    );
+    const totalReceivedPrevious = sumTransactions(
+      previousWindow,
+      (transaction) => transaction.type === "incoming" && transaction.status === "completed"
+    );
+    const totalReceivedAllTime = sumTransactions(
+      transactions,
+      (transaction) => transaction.type === "incoming" && transaction.status === "completed"
+    );
+    const currentMonthTransactions = transactions.filter((transaction) =>
+      isWithinLastDays(transaction.created_at, 30, now)
+    );
+    const completedIncomingCount = Math.max(
+      currentWindow.filter((transaction) => transaction.type === "incoming" && transaction.status === "completed").length,
+      1
+    );
+    const change =
+      totalReceivedPrevious > 0
+        ? ((totalReceivedCurrent - totalReceivedPrevious) / totalReceivedPrevious) * 100
+        : totalReceivedCurrent > 0
+          ? 100
+          : 0;
+
     return {
-      ...DEMO_STATS,
-      active_payment_links: activeLinksCount,
+      total_received_usd: totalReceivedAllTime,
+      total_received_change: Number(change.toFixed(1)),
+      pending_settlements_usd: sumTransactions(
+        transactions,
+        (transaction) =>
+          transaction.type !== "incoming" &&
+          (transaction.status === "pending" || transaction.status === "processing")
+      ),
+      active_payment_links: links.filter((link) => link.status === "active").length,
+      transactions_this_month: currentMonthTransactions.length,
+      avg_transaction_usd: Number((totalReceivedCurrent / completedIncomingCount).toFixed(2)),
+      customer_count: customers.length,
     };
-  } catch (error) {
+  } catch {
     return DEMO_STATS;
   }
 }
 
 export async function getChartData(): Promise<ChartDataPoint[]> {
-  // TODO: GET /api/v1/accounts/{id}/chart?period=30d
-  await delay();
-  return DEMO_CHART_DATA;
-}
+  try {
+    const { data } = await getTransactions();
+    const now = new Date();
+    const points: ChartDataPoint[] = [];
 
-// ─── Transactions ────────────────────────────────────────────
+    for (let offset = 29; offset >= 0; offset -= 1) {
+      const day = new Date(now);
+      day.setHours(0, 0, 0, 0);
+      day.setDate(day.getDate() - offset);
+      const nextDay = new Date(day);
+      nextDay.setDate(nextDay.getDate() + 1);
+
+      const dayTransactions = data.filter((transaction) => {
+        const createdAt = new Date(transaction.created_at).getTime();
+        return (
+          createdAt >= day.getTime() &&
+          createdAt < nextDay.getTime() &&
+          transaction.type === "incoming" &&
+          transaction.status === "completed"
+        );
+      });
+
+      points.push({
+        date: day.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+        amount: dayTransactions.reduce((sum, transaction) => sum + transaction.amount, 0),
+        count: dayTransactions.length,
+      });
+    }
+
+    return points;
+  } catch {
+    await delay();
+    return DEMO_CHART_DATA;
+  }
+}
 
 export async function getTransactions(params?: {
   page?: number;
   status?: string;
   type?: string;
 }): Promise<ApiResponse<Transaction[]>> {
-  // TODO: GET /api/v1/accounts/{id}/transactions
-  await delay();
-  let data = [...DEMO_TRANSACTIONS];
-  if (params?.status) data = data.filter((t) => t.status === params.status);
-  if (params?.type) data = data.filter((t) => t.type === params.type);
-  return { data, meta: { total: data.length, page: 1, per_page: 20 } };
+  const searchParams = new URLSearchParams();
+  if (params?.page) searchParams.set("page", String(params.page));
+  if (params?.status) searchParams.set("status", params.status);
+  if (params?.type) searchParams.set("type", params.type);
+
+  const response = await fetch(`/api/transactions${searchParams.size ? `?${searchParams.toString()}` : ""}`, {
+    cache: "no-store",
+  });
+  const result = (await response.json()) as ApiResponse<Transaction[]> & { error?: string };
+
+  if (!response.ok || !result.data) {
+    throw new Error(result.error || "Unable to load transactions.");
+  }
+
+  return result;
 }
 
-// ─── Payment Links ───────────────────────────────────────────
+export async function getAccount(): Promise<Account> {
+  const response = await fetch("/api/account", { cache: "no-store" });
+  const result = (await response.json()) as { data?: Account; error?: string };
+
+  if (!response.ok || !result.data) {
+    throw new Error(result.error || "Unable to load account.");
+  }
+
+  return result.data;
+}
 
 export async function getPaymentLinks(): Promise<PaymentLink[]> {
   const response = await fetch("/api/payment-links", { cache: "no-store" });
@@ -78,9 +182,7 @@ export async function getPaymentLinks(): Promise<PaymentLink[]> {
   return result.data;
 }
 
-export async function createPaymentLink(
-  input: CreatePaymentLinkInput
-): Promise<PaymentLink> {
+export async function createPaymentLink(input: CreatePaymentLinkInput): Promise<PaymentLink> {
   const response = await fetch("/api/payment-links", {
     method: "POST",
     headers: {
@@ -101,11 +203,14 @@ export async function createPaymentLink(
 export async function createPaymentRequest(input: {
   payment_link_id: string;
   payment_link_slug: string;
-  amount: string;
+  quote_amount: string;
   quote_currency: string;
+  source_currency: string;
   target_currency: string;
   email: string;
   name: string;
+  phone_number?: string;
+  reference?: string;
 }): Promise<PaymentRequest> {
   const response = await fetch("/api/payment-requests", {
     method: "POST",
@@ -138,13 +243,37 @@ export async function getPaymentRequest(id: string): Promise<PaymentRequest> {
   return result.data;
 }
 
+export async function createQuote(input: {
+  source_currency: string;
+  target_currency: string;
+  source_amount?: string;
+  target_amount?: string;
+  pay_in?: Record<string, unknown>;
+  pay_out?: Record<string, unknown>;
+}): Promise<Quote> {
+  const response = await fetch("/api/quotes", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(input),
+  });
+
+  const result = (await response.json()) as { data?: Quote; error?: string };
+
+  if (!response.ok || !result.data) {
+    throw new Error(result.error || "Unable to create quote.");
+  }
+
+  return result.data;
+}
+
 export async function togglePaymentLink(
   _id: string,
   _status: "active" | "inactive"
 ): Promise<void> {
   void _id;
   void _status;
-  // TODO: PATCH /api/v1/payment-links/{id}
   await delay(400);
 }
 
@@ -191,8 +320,6 @@ export async function verifyCustomer(id: string): Promise<Customer> {
   return result.data;
 }
 
-// ─── Recipients ──────────────────────────────────────────────
-
 export async function getRecipients(): Promise<Recipient[]> {
   const response = await fetch("/api/recipients", { cache: "no-store" });
   const result = (await response.json()) as { data?: Recipient[]; error?: string };
@@ -238,82 +365,30 @@ export async function createRecipient(input: CreateRecipientInput): Promise<Reci
   return result.data;
 }
 
-// ─── Settlements ─────────────────────────────────────────────
-
 export async function getSettlements(): Promise<Settlement[]> {
-  // TODO: GET /api/v1/settlements
-  await delay();
-  return DEMO_SETTLEMENTS;
-}
-
-export async function createSettlement(
-  input: CreateSettlementInput
-): Promise<Settlement> {
-  // TODO: POST /api/v1/settlements
-  // TODO: confirm Busha API request body — does it accept USD amount + recipient?
-  await delay(1000);
-  const recipient = DEMO_RECIPIENTS.find((r) => r.id === input.recipient_id)!;
-  return {
-    id: `set-${Date.now()}`,
-    account_id: DEMO_ACCOUNT.id,
-    recipient_id: input.recipient_id,
-    recipient,
-    amount_usd: input.amount_usd,
-    amount_local: input.amount_usd * 1547,
-    local_currency: "NGN",
-    exchange_rate: 1547,
-    fee_usd: input.amount_usd * 0.003,
-    status: "processing",
-    reference: `SET-${Date.now()}`,
-    note: input.note,
-    created_at: new Date().toISOString(),
-  };
-}
-
-// ─── Webhooks ────────────────────────────────────────────────
-
-export async function getWebhooks(): Promise<Webhook[]> {
-  const response = await fetch("/api/webhooks", { cache: "no-store" });
-  const result = (await response.json()) as {
-    data?: {
-      endpoint_url: string;
-      signing_secret_configured: boolean;
-      deliveries: WebhookDelivery[];
-    };
-    error?: string;
-  };
+  const response = await fetch("/api/settlements", { cache: "no-store" });
+  const result = (await response.json()) as { data?: Settlement[]; error?: string };
 
   if (!response.ok || !result.data) {
-    throw new Error(result.error || "Unable to load webhook data.");
+    throw new Error(result.error || "Unable to load settlements.");
   }
 
-  return [
-    {
-      id: "busha-receiver",
-      account_id: DEMO_ACCOUNT.id,
-      url: result.data.endpoint_url,
-      events: ["payment.received", "payment.failed", "settlement.initiated", "settlement.completed", "payment_link.created", "payment_link.paid"],
-      is_active: result.data.signing_secret_configured,
-      secret: result.data.signing_secret_configured ? "Configured in env" : "Missing in env",
-      created_at: new Date().toISOString(),
-      last_triggered_at: result.data.deliveries[0]?.received_at,
-      failure_count: 0,
+  return result.data;
+}
+
+export async function createSettlement(input: CreateSettlementInput): Promise<Settlement> {
+  const response = await fetch("/api/settlements", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
     },
-  ];
-}
-
-export async function getWebhookDeliveries(): Promise<WebhookDelivery[]> {
-  const response = await fetch("/api/webhooks", { cache: "no-store" });
-  const result = (await response.json()) as {
-    data?: {
-      deliveries: WebhookDelivery[];
-    };
-    error?: string;
-  };
+    body: JSON.stringify(input),
+  });
+  const result = (await response.json()) as { data?: Settlement; error?: string };
 
   if (!response.ok || !result.data) {
-    throw new Error(result.error || "Unable to load webhook deliveries.");
+    throw new Error(result.error || "Unable to create settlement.");
   }
 
-  return result.data.deliveries;
+  return result.data;
 }

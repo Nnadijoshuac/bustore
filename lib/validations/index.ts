@@ -68,13 +68,17 @@ export const createPaymentLinkSchema = z.object({
 });
 
 export const createRecipientSchema = z.object({
-  name: z.string().min(2, "Recipient name is required"),
-  email: z.string().email().optional().or(z.literal("")),
-  bank_name: z.string().min(2, "Bank name is required"),
-  bank_account_number: z.string().min(6, "Account number is required"),
-  bank_account_name: z.string().min(2, "Account name is required"),
-  country: z.string().min(2, "Country is required"),
-  currency: z.enum(["USD", "EUR", "GBP", "NGN", "GHS", "KES", "ZAR"]),
+  country_id: z.string().min(2, "Country is required"),
+  currency_id: z.string().min(2, "Currency is required"),
+  type: z.string().min(2, "Recipient type is required"),
+  legal_entity_type: z.string().optional(),
+  customer_id: z.string().optional(),
+  fields: z.array(
+    z.object({
+      name: z.string().min(1),
+      value: z.string().min(1),
+    })
+  ).min(1, "At least one recipient field is required"),
 });
 
 export const createSettlementSchema = z.object({
@@ -84,11 +88,6 @@ export const createSettlementSchema = z.object({
     .positive("Amount must be greater than 0")
     .max(50000, "Max single settlement is $50,000"),
   note: z.string().max(200).optional(),
-});
-
-export const webhookSchema = z.object({
-  url: z.string().url("Enter a valid webhook URL"),
-  events: z.array(z.string()).min(1, "Select at least one event"),
 });
 
 export const customerAddressSchema = z.object({
@@ -171,5 +170,4 @@ export type RegisterInput = z.infer<typeof registerSchema>;
 export type CreatePaymentLinkInput = z.infer<typeof createPaymentLinkSchema>;
 export type CreateRecipientInput = z.infer<typeof createRecipientSchema>;
 export type CreateSettlementInput = z.infer<typeof createSettlementSchema>;
-export type WebhookInput = z.infer<typeof webhookSchema>;
 export type CreateCustomerInput = z.infer<typeof createCustomerSchema>;

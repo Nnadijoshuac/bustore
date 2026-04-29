@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { PaymentRequest } from "@/types";
+import { getDemoPaymentRequest } from "@/lib/api/demo-payment-request-store";
 
 function getStringField(...values: unknown[]) {
   const match = values.find((value) => typeof value === "string" && value.trim().length > 0);
@@ -104,13 +105,17 @@ export async function GET(
   _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
+
   try {
-    const { id } = await params;
-    const publicKey = process.env.NEXT_PUBLIC_BUSHA_PUBLIC_API_KEY;
+    const publicKey = process.env.BUSHA_PUBLIC_API_KEY || process.env.NEXT_PUBLIC_BUSHA_PUBLIC_API_KEY;
     const baseUrl = process.env.BUSHA_API_BASE_URL || "https://api.sandbox.busha.so";
 
     if (!publicKey) {
-      return NextResponse.json({ error: "NEXT_PUBLIC_BUSHA_PUBLIC_API_KEY is not configured." }, { status: 500 });
+      const demoRequest = getDemoPaymentRequest(id);
+      return demoRequest
+        ? NextResponse.json({ data: demoRequest, meta: { mode: "demo" } })
+        : NextResponse.json({ error: "Payment request not found." }, { status: 404 });
     }
 
     const response = await fetch(`${baseUrl}/v1/payments/requests/${id}`, {
@@ -131,11 +136,35 @@ export async function GET(
         typeof result.error === "string"
           ? result.error
           : result.error?.message || result.message || "Unable to load payment request.";
+
+      if (response.status >= 500) {
+        const demoRequest = getDemoPaymentRequest(id);
+
+        if (demoRequest) {
+          return NextResponse.json({
+            data: demoRequest,
+            meta: { mode: "demo", fallback_reason: message },
+          });
+        }
+      }
+
       return NextResponse.json({ error: message }, { status: response.status || 500 });
     }
 
     return NextResponse.json({ data: normalizePaymentRequest(result.data) });
   } catch (error) {
+    const demoRequest = getDemoPaymentRequest(id);
+
+    if (demoRequest) {
+      return NextResponse.json({
+        data: demoRequest,
+        meta: {
+          mode: "demo",
+          fallback_reason: error instanceof Error ? error.message : "Unable to load payment request.",
+        },
+      });
+    }
+
     const message = error instanceof Error ? error.message : "Unable to load payment request.";
     return NextResponse.json({ error: message }, { status: 500 });
   }

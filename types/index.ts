@@ -1,6 +1,6 @@
 // ============================================================
 // BushaPay Core Types
-// All crypto abstracted — these are pure payment platform types
+// All crypto abstracted - these are pure payment platform types
 // ============================================================
 
 export type Currency = "USD" | "EUR" | "GBP" | "NGN" | "GHS" | "KES" | "ZAR";
@@ -20,7 +20,7 @@ export type CustomerStatus = "inactive" | "in_review" | "active" | "rejected";
 export type CustomerType = "individual" | "business";
 export type KycDocumentType = "passport" | "national-id" | "selfie";
 
-// ─── User / Account ─────────────────────────────────────────
+// User / Account
 
 export interface User {
   id: string;
@@ -36,14 +36,13 @@ export interface User {
 export interface Account {
   id: string;
   user_id: string;
-  // Displayed to user as plain balance, never as crypto
   balance_usd: number;
   balance_local: number;
   local_currency: Currency;
   is_demo: boolean;
 }
 
-// ─── Transactions ────────────────────────────────────────────
+// Transactions
 
 export interface Transaction {
   id: string;
@@ -62,18 +61,18 @@ export interface Transaction {
   metadata?: Record<string, unknown>;
 }
 
-// ─── Payment Links ───────────────────────────────────────────
+// Payment Links
 
 export interface PaymentLink {
   id: string;
   account_id: string;
   title: string;
   description?: string;
-  amount?: number; // null = customer-defined
+  amount?: number;
   currency: Currency;
   target_currency?: PaymentTargetCurrency;
   status: PaymentLinkStatus;
-  slug: string; // e.g. pay.bushapay.com/pay/{slug}
+  slug: string;
   hosted_url?: string;
   redirect_url?: string;
   one_time: boolean;
@@ -140,6 +139,39 @@ export interface PaymentRequest {
   };
 }
 
+export interface QuoteRate {
+  product?: string;
+  pair?: string;
+  rate: string;
+  side?: string;
+  type?: string;
+  source_currency?: string;
+  target_currency?: string;
+}
+
+export interface QuoteFee {
+  name?: string;
+  amount: string;
+  currency?: string;
+}
+
+export interface Quote {
+  id: string;
+  source_currency: string;
+  target_currency: string;
+  source_amount: string;
+  target_amount: string;
+  quote_currency?: string;
+  quote_amount?: string;
+  reference: string;
+  status: string;
+  expires_at: string;
+  created_at?: string;
+  updated_at?: string;
+  rate?: QuoteRate;
+  fees: QuoteFee[];
+}
+
 export interface CustomerAddress {
   city: string;
   state: string;
@@ -196,7 +228,7 @@ export interface CreateCustomerInput {
   identifying_information?: CustomerIdentifyingInformation[];
 }
 
-// ─── Recipients ──────────────────────────────────────────────
+// Recipients
 
 export interface Recipient {
   id: string;
@@ -211,6 +243,7 @@ export interface Recipient {
   is_verified: boolean;
   created_at: string;
   type?: string;
+  category?: string;
   legal_entity_type?: string;
   active?: boolean;
   owned_by_customer?: boolean;
@@ -226,24 +259,22 @@ export interface RecipientField {
   is_visible: boolean;
 }
 
-export interface RecipientRequirementOption {
-  label: string;
-  value: string;
-}
-
 export interface RecipientRequirement {
   name: string;
   display_name: string;
   type: string;
   required: boolean;
   description?: string;
-  options?: RecipientRequirementOption[];
+  options?: Array<{
+    label: string;
+    value: string;
+  }>;
 }
 
 export interface CreateRecipientInput {
   country_id: string;
   currency_id: string;
-  type?: string;
+  type: string;
   legal_entity_type?: string;
   customer_id?: string;
   fields: Array<{
@@ -252,7 +283,7 @@ export interface CreateRecipientInput {
   }>;
 }
 
-// ─── Settlements ─────────────────────────────────────────────
+// Settlements
 
 export interface Settlement {
   id: string;
@@ -277,37 +308,7 @@ export interface CreateSettlementInput {
   note?: string;
 }
 
-// ─── Webhooks ────────────────────────────────────────────────
-
-export interface Webhook {
-  id: string;
-  account_id: string;
-  url: string;
-  events: WebhookEvent[];
-  is_active: boolean;
-  secret: string;
-  created_at: string;
-  last_triggered_at?: string;
-  failure_count: number;
-}
-
-export interface WebhookDelivery {
-  id: string;
-  event: string;
-  received_at: string;
-  payload: Record<string, unknown>;
-  signature?: string;
-}
-
-export type WebhookEvent =
-  | "payment.received"
-  | "payment.failed"
-  | "settlement.initiated"
-  | "settlement.completed"
-  | "payment_link.created"
-  | "payment_link.paid";
-
-// ─── API Response Wrappers ───────────────────────────────────
+// API Response Wrappers
 
 export interface ApiResponse<T> {
   data: T;
@@ -325,15 +326,16 @@ export interface ApiError {
   details?: Record<string, string[]>;
 }
 
-// ─── Dashboard Analytics ─────────────────────────────────────
+// Dashboard Analytics
 
 export interface DashboardStats {
   total_received_usd: number;
-  total_received_change: number; // % vs last period
+  total_received_change: number;
   pending_settlements_usd: number;
   active_payment_links: number;
   transactions_this_month: number;
   avg_transaction_usd: number;
+  customer_count?: number;
 }
 
 export interface ChartDataPoint {

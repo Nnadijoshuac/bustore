@@ -25,7 +25,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="w-full max-w-[540px] rounded-[3rem] border border-white/70 bg-white/92 p-6 shadow-2xl shadow-slate-200/70 backdrop-blur sm:p-10 lg:mr-auto">
+    <div className="w-full max-w-[540px] rounded-[3rem] border border-white/70 bg-white/92 p-6 shadow-2xl shadow-slate-200/70 sm:p-10 lg:mr-auto">
       <div className="mb-8 flex items-center gap-3">
         <Image
           src="/logo_fluent.png"
@@ -109,18 +109,18 @@ export default function RegisterPage() {
       <div className="mt-5 rounded-2xl border border-border bg-secondary/60 px-4 py-3">
         <p className="text-sm font-medium text-busha-slate">What you can test immediately</p>
         <p className="mt-1 text-sm text-muted-foreground">
-          Create a payment link, start a Busha payment request, inspect recipients, and view webhook activity.
+          Create a payment link, start a Busha payment request, add payout recipients, and initiate a settlement.
         </p>
       </div>
 
       <p className="mt-5 text-center text-sm text-muted-foreground">
         Already have an account?{" "}
-        <Link href="/login" className="font-medium text-primary hover:underline">
+        <Link href="/login" className="font-medium text-primary">
           Sign in
         </Link>
       </p>
 
-      <Link href="/" className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-busha-slate/70 hover:text-busha-slate">
+      <Link href="/" className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-busha-slate/70">
         Back to product overview
         <ArrowRight className="h-4 w-4" />
       </Link>

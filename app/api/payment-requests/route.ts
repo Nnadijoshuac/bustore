@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { PaymentRequest } from "@/types";
+import { createDemoPaymentRequest } from "@/lib/api/demo-payment-request-store";
 
 function getStringField(...values: unknown[]) {
   const match = values.find((value) => typeof value === "string" && value.trim().length > 0);
@@ -97,8 +98,8 @@ function normalizePaymentRequest(data: Record<string, unknown>): PaymentRequest 
   };
 }
 
-function getDefaultNetwork(targetCurrency: string) {
-  switch (targetCurrency.toUpperCase()) {
+function getDefaultNetwork(sourceCurrency: string) {
+  switch (sourceCurrency.toUpperCase()) {
     case "USDT":
       return "TRX";
     case "BTC":
@@ -106,49 +107,40 @@ function getDefaultNetwork(targetCurrency: string) {
     case "ETH":
       return "ETH";
     default:
-      return targetCurrency.toUpperCase();
+      return sourceCurrency.toUpperCase();
   }
 }
 
-function getPayInConfig(targetCurrency: string) {
-  switch (targetCurrency.toUpperCase()) {
-    case "USDT":
-    case "BTC":
-      return {
-        type: "address",
-        network: getDefaultNetwork(targetCurrency),
-      };
-    case "NGN":
-    case "USD":
-    case "KES":
-      return {
-        type: "temporary_bank_account",
-      };
-    default:
-      return {
-        type: "address",
-        network: getDefaultNetwork(targetCurrency),
-      };
-  }
+function getPayInConfig(sourceCurrency: string) {
+  return {
+    type: "address",
+    network: getDefaultNetwork(sourceCurrency),
+  };
 }
 
 export async function POST(request: Request) {
-  try {
-    const body = (await request.json()) as {
-      payment_link_id: string;
-      payment_link_slug: string;
-      amount: string;
-      quote_currency: string;
-      target_currency: string;
-      email: string;
-      name: string;
-    };
+  const body = (await request.json()) as {
+    payment_link_id: string;
+    payment_link_slug: string;
+    quote_amount: string;
+    quote_currency: string;
+    source_currency: string;
+    target_currency: string;
+    email: string;
+    name: string;
+    phone_number?: string;
+    reference?: string;
+  };
 
-    const publicKey = process.env.NEXT_PUBLIC_BUSHA_PUBLIC_API_KEY;
+  try {
+    const publicKey = process.env.BUSHA_PUBLIC_API_KEY || process.env.NEXT_PUBLIC_BUSHA_PUBLIC_API_KEY;
     const baseUrl = process.env.BUSHA_API_BASE_URL || "https://api.sandbox.busha.so";
 
     if (!publicKey) {
-      return NextResponse.json({ error: "NEXT_PUBLIC_BUSHA_PUBLIC_API_KEY is not configured." }, { status: 500 });
+      return NextResponse.json({
+        data: createDemoPaymentRequest(body),
+        meta: { mode: "demo" },
+      }, { status: 201 });
     }
 
     const response = await fetch(`${baseUrl}/v1/payments/requests`, {
@@ -161,14 +153,16 @@ export async function POST(request: Request) {
         additional_info: {
           email: body.email,
           name: body.name,
+          ...(body.phone_number ? { phone_number: body.phone_number } : {}),
           source: "web",
         },
-        quote_amount: body.amount,
+        dry_run: false,
+        quote_amount: body.quote_amount,
         quote_currency: body.quote_currency,
-        source_currency: body.target_currency,
+        source_currency: body.source_currency,
         target_currency: body.target_currency,
-        pay_in: getPayInConfig(body.target_currency),
-        reference: `${body.payment_link_slug}-${Date.now()}`,
+        pay_in: getPayInConfig(body.source_currency),
+        reference: body.reference || `${body.payment_link_slug}-${Date.now()}`,
       }),
       cache: "no-store",
     });
@@ -188,12 +182,25 @@ export async function POST(request: Request) {
         message.includes("minimum 5 USDT")
           ? "This amount is too small for USDT payments. Use NGN bank transfer for 2400 NGN, or increase the amount to at least the Busha crypto minimum."
           : message;
+
+      if (response.status >= 500) {
+        return NextResponse.json({
+          data: createDemoPaymentRequest(body),
+          meta: { mode: "demo", fallback_reason: normalizedMessage },
+        }, { status: 201 });
+      }
+
       return NextResponse.json({ error: normalizedMessage }, { status: response.status || 500 });
     }
 
     return NextResponse.json({ data: normalizePaymentRequest(result.data) }, { status: 201 });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unable to create payment request.";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({
+      data: createDemoPaymentRequest(body),
+      meta: {
+        mode: "demo",
+        fallback_reason: error instanceof Error ? error.message : "Unable to create payment request.",
+      },
+    }, { status: 201 });
   }
 }

@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Topbar } from "@/components/shared/topbar";
 import { DEMO_USER, DEMO_ACCOUNT } from "@/lib/api/demo-data";
+import { getAccount } from "@/lib/api/service";
 import { formatCurrency } from "@/lib/utils";
 import { Icon } from "@iconify/react";
 import { cn } from "@/lib/utils";
@@ -11,6 +13,8 @@ import { useToast } from "@/components/ui/toaster";
 export default function SettingsPage() {
   const [panelOpen, setPanelOpen] = useState(false);
   const { toast } = useToast();
+  const { data: account } = useQuery({ queryKey: ["account"], queryFn: getAccount });
+  const displayedAccount = account ?? DEMO_ACCOUNT;
 
   return (
     <div className="relative min-h-screen">
@@ -21,11 +25,11 @@ export default function SettingsPage() {
         {/* Profile Hero - Unboxed & Professional */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-8 border-b border-border/40">
           <div className="flex items-center gap-5">
-            <div className="relative group">
-              <div className="w-16 h-16 rounded-[1.5rem] bg-primary/10 text-primary font-bold text-xl flex items-center justify-center border-2 border-white shadow-sm overflow-hidden transition-transform group-hover:scale-105">
+            <div className="relative">
+              <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-[1.5rem] border-2 border-white bg-primary/10 text-xl font-bold text-primary shadow-sm">
                 {DEMO_USER.full_name.split(" ").map(n => n[0]).join("")}
               </div>
-              <button className="absolute -bottom-1 -right-1 p-1.5 bg-white rounded-lg shadow-md border border-border text-muted-foreground hover:text-primary transition-colors">
+              <button className="absolute -bottom-1 -right-1 rounded-lg border border-border bg-white p-1.5 text-muted-foreground shadow-md">
                 <Icon icon="solar:camera-bold-duotone" className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -44,7 +48,7 @@ export default function SettingsPage() {
           </div>
           <button 
             onClick={() => setPanelOpen(true)}
-            className="px-5 py-2 rounded-xl border border-border bg-white font-bold text-xs text-slate-700 hover:bg-slate-50 transition-all shadow-sm flex items-center gap-2"
+            className="flex items-center gap-2 rounded-xl border border-border bg-white px-5 py-2 text-xs font-bold text-slate-700 shadow-sm"
           >
             <Icon icon="solar:user-edit-bold-duotone" className="w-4 h-4 text-primary" />
             Edit Profile
@@ -62,32 +66,31 @@ export default function SettingsPage() {
               { icon: "solar:shop-2-bold-duotone", label: "Business Entity", desc: "Registration and tax profiles" },
               { icon: "solar:global-bold-duotone", label: "Settlement Rule", desc: "Payout logic and currencies" },
             ].map(({ icon, label, desc }) => (
-              <button key={label} className="group flex w-full items-center gap-3.5 p-3.5 rounded-xl bg-card hover:bg-slate-50/50 transition-all border border-transparent hover:border-border/50 shadow-sm">
-                <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center text-muted-foreground group-hover:bg-white group-hover:text-primary transition-colors border border-transparent group-hover:border-border/40">
+              <button key={label} className="flex w-full items-center gap-3.5 rounded-xl border border-transparent bg-card p-3.5 shadow-sm">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-transparent bg-secondary text-muted-foreground">
                   <Icon icon={icon} className="w-4.5 h-4.5" />
                 </div>
                 <div className="flex-1 text-left">
                   <p className="font-bold text-xs text-slate-800">{label}</p>
                   <p className="text-[10px] text-muted-foreground mt-0.5 font-medium">{desc}</p>
                 </div>
-                <Icon icon="solar:alt-arrow-right-bold-duotone" className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-all translate-x-[-10px] group-hover:translate-x-0" />
+                <Icon icon="solar:alt-arrow-right-bold-duotone" className="h-4 w-4 text-muted-foreground" />
               </button>
             ))}
           </div>
 
           {/* Sidebar Balance Widget */}
           <div className="space-y-6">
-            <div className="bg-slate-900 rounded-[1.5rem] p-5 border border-white/5 shadow-xl relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-24 h-24 bg-primary opacity-10 rounded-full translate-x-1/2 -translate-y-1/2 blur-2xl" />
+            <div className="relative overflow-hidden rounded-[1.5rem] border border-white/5 bg-slate-900 p-5 shadow-xl">
               <h6 className="text-[9px] font-bold text-primary uppercase tracking-[0.2em] mb-4 relative z-10">Vault Status</h6>
               <div className="space-y-5 relative z-10">
                 <div>
                   <p className="text-[9px] text-white/40 font-bold uppercase tracking-widest mb-1">Available Funds</p>
-                  <p className="text-xl font-bold tracking-tight text-white">{formatCurrency(DEMO_ACCOUNT.balance_usd)}</p>
+                  <p className="text-xl font-bold tracking-tight text-white">{formatCurrency(displayedAccount.balance_usd)}</p>
                 </div>
                 <div className="pt-4 border-t border-white/10">
-                  <p className="text-[9px] text-white/40 font-bold uppercase tracking-widest mb-1">Local Value (NGN)</p>
-                  <p className="text-base font-bold text-white/80">{formatCurrency(DEMO_ACCOUNT.balance_local, DEMO_ACCOUNT.local_currency)}</p>
+                  <p className="text-[9px] text-white/40 font-bold uppercase tracking-widest mb-1">Local Value ({displayedAccount.local_currency})</p>
+                  <p className="text-base font-bold text-white/80">{formatCurrency(displayedAccount.balance_local, displayedAccount.local_currency)}</p>
                 </div>
               </div>
             </div>
@@ -97,7 +100,7 @@ export default function SettingsPage() {
                <p className="text-[10px] text-muted-foreground leading-relaxed font-medium">
                  Technical questions about integrations? Our dev support is live.
                </p>
-               <button className="mt-2.5 text-[10px] font-bold text-primary hover:underline uppercase tracking-wider">Open Ticket</button>
+               <button className="mt-2.5 text-[10px] font-bold uppercase tracking-wider text-primary">Open Ticket</button>
             </div>
           </div>
         </div>
@@ -110,7 +113,7 @@ export default function SettingsPage() {
           panelOpen ? "opacity-100" : "opacity-0 pointer-events-none"
         )}
       >
-        <div className="absolute inset-0 bg-black/10 backdrop-blur-[1px]" onClick={() => setPanelOpen(false)} />
+        <div className="absolute inset-0 bg-black/10" onClick={() => setPanelOpen(false)} />
         
         <div 
           className={cn(
@@ -127,7 +130,7 @@ export default function SettingsPage() {
               </div>
               <button 
                 onClick={() => setPanelOpen(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-secondary transition-colors"
+                className="flex h-8 w-8 items-center justify-center rounded-full"
               >
                 <Icon icon="solar:close-circle-bold-duotone" className="w-5 h-5 text-muted-foreground" />
               </button>
@@ -184,7 +187,7 @@ export default function SettingsPage() {
                 <button 
                   type="button" 
                   onClick={() => setPanelOpen(false)}
-                  className="flex-1 h-10 px-4 rounded-xl bg-white border border-border font-bold text-xs hover:bg-slate-50 transition-colors"
+                  className="h-10 flex-1 rounded-xl border border-border bg-white px-4 text-xs font-bold"
                 >
                   Cancel
                 </button>

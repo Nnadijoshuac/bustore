@@ -3,19 +3,20 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Icon } from "@iconify/react";
-import { getSettlements, getRecipients, createSettlement } from "@/lib/api/service";
+import { getAccount, getSettlements, getRecipients, createQuote, createSettlement } from "@/lib/api/service";
 import { Topbar } from "@/components/shared/topbar";
 import { StatusBadge } from "@/components/ui/badge";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { useToast } from "@/components/ui/toaster";
 import { DEMO_ACCOUNT } from "@/lib/api/demo-data";
 import { cn } from "@/lib/utils";
+import type { Settlement } from "@/types";
 
 const DEMO_RATE = 1547;
 
 export default function SettlementsPage() {
   const [panelOpen, setPanelOpen] = useState(false);
-  const [selectedSettlement, setSelectedSettlement] = useState<any | null>(null);
+  const [selectedSettlement, setSelectedSettlement] = useState<Settlement | null>(null);
   const [amount, setAmount] = useState("");
   const [recipientId, setRecipientId] = useState("");
   const [note, setNote] = useState("");
@@ -26,29 +27,62 @@ export default function SettlementsPage() {
 
   const { data: settlements = [], isLoading } = useQuery({ queryKey: ["settlements"], queryFn: getSettlements });
   const { data: recipients = [] } = useQuery({ queryKey: ["recipients"], queryFn: getRecipients });
+  const { data: account } = useQuery({ queryKey: ["account"], queryFn: getAccount });
 
   const mutation = useMutation({
     mutationFn: createSettlement,
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["account"] });
       queryClient.invalidateQueries({ queryKey: ["settlements"] });
-      toast({ title: "Settlement processed", description: "Funds are on their way to the bank.", variant: "success" });
+      toast({ title: "Settlement initiated", description: "Busha transfer has been created and is now processing.", variant: "success" });
       setPanelOpen(false);
       setAmount("");
       setRecipientId("");
       setNote("");
     },
-    onError: () => toast({ title: "Settlement failed", variant: "error" }),
+    onError: (error) =>
+      toast({
+        title: "Settlement failed",
+        description: error instanceof Error ? error.message : "Unable to create settlement.",
+        variant: "error",
+      }),
   });
 
   const amountNum = parseFloat(amount) || 0;
   const fee = amountNum * 0.003;
+  const selectedRecipientRecord = recipients.find((recipient) => recipient.id === recipientId);
+  const quoteCurrency = selectedRecipientRecord?.currency || "NGN";
+  const quoteErrorMessage = "Live Busha quote unavailable. Demo estimate shown below.";
+  const displayedAccount = account ?? DEMO_ACCOUNT;
+
+  const {
+    data: payoutQuote,
+    error: payoutQuoteError,
+    isLoading: isLoadingQuote,
+  } = useQuery({
+    queryKey: ["settlement-quote", recipientId, amountNum],
+    queryFn: () =>
+      createQuote({
+        source_currency: "USD",
+        target_currency: quoteCurrency,
+        source_amount: amountNum.toFixed(2),
+        pay_out: recipientId
+          ? {
+              type: "bank_transfer",
+              recipient_id: recipientId,
+            }
+          : undefined,
+      }),
+    enabled: Boolean(recipientId && amountNum > 0 && selectedRecipientRecord),
+    retry: false,
+  });
 
   const handleNew = () => {
     setSelectedSettlement(null);
     setPanelOpen(true);
   };
 
-  const handleView = (settlement: any) => {
+  const handleView = (settlement: Settlement) => {
     setSelectedSettlement(settlement);
     setPanelOpen(true);
   };
@@ -61,8 +95,8 @@ export default function SettlementsPage() {
   return (
     <div className="relative min-h-screen">
       <Topbar
-        title="Settlements"
-        description="Withdraw USD balance to local bank accounts"
+        title="Cash Out"
+        description="Send available balance to a saved bank or mobile-money recipient"
         actions={
           <button onClick={handleNew} className="btn-primary py-1.5 h-8">
             <Icon icon="solar:card-send-bold-duotone" className="w-4 h-4" />
@@ -73,16 +107,15 @@ export default function SettlementsPage() {
 
       <div className="p-4 sm:p-6 lg:p-8 space-y-6">
         {/* Balance Status - Premium Hero */}
-        <div className="relative overflow-hidden rounded-[2rem] bg-slate-900 p-6 text-white shadow-xl">
-           <div className="absolute top-0 right-0 w-64 h-64 bg-primary opacity-10 rounded-full translate-x-1/2 -translate-y-1/2 blur-3xl" />
+         <div className="relative overflow-hidden rounded-[2rem] bg-slate-900 p-6 text-white shadow-xl">
            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
              <div>
                <p className="text-[10px] font-bold text-white/50 uppercase tracking-[0.2em] mb-2">Available for Settlement</p>
-               <h2 className="text-3xl font-display font-bold tracking-tight">{formatCurrency(DEMO_ACCOUNT.balance_usd)}</h2>
+               <h2 className="text-3xl font-display font-bold tracking-tight">{formatCurrency(displayedAccount.balance_usd)}</h2>
              </div>
-             <div className="bg-white/5 backdrop-blur-md rounded-xl p-3 border border-white/10">
+             <div className="rounded-xl border border-white/10 bg-white/5 p-3">
                 <p className="text-[9px] font-bold text-white/40 uppercase tracking-widest mb-1">Live Exchange Rate</p>
-                <p className="text-xs font-bold">1 USD = <span className="text-primary">{DEMO_RATE.toLocaleString()} NGN</span></p>
+                <p className="text-xs font-bold">1 USD = <span className="text-primary">{(payoutQuote?.rate?.rate ? Number(payoutQuote.rate.rate) : DEMO_RATE).toLocaleString()} {quoteCurrency}</span></p>
              </div>
            </div>
         </div>
@@ -112,7 +145,7 @@ export default function SettlementsPage() {
               </div>
               <h3 className="font-display font-bold text-base text-slate-800">No history found</h3>
               <p className="text-[10px] text-muted-foreground max-w-xs mx-auto mt-0.5">
-                Your completed and pending settlements will appear here.
+                Your completed and pending cash-outs will appear here.
               </p>
             </div>
           ) : (
@@ -121,9 +154,9 @@ export default function SettlementsPage() {
                 <div
                   key={settlement.id}
                   onClick={() => handleView(settlement)}
-                  className="group flex items-center gap-3 bg-card hover:bg-slate-50/50 p-3 rounded-xl transition-all cursor-pointer border border-transparent hover:border-border/50 shadow-sm"
+                   className="flex cursor-pointer items-center gap-3 rounded-xl border border-transparent bg-card p-3 shadow-sm"
                 >
-                  <div className="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
+                  <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
                     <Icon icon="solar:bank-bold-duotone" className="w-5 h-5" />
                   </div>
                   
@@ -161,7 +194,7 @@ export default function SettlementsPage() {
           panelOpen ? "opacity-100" : "opacity-0 pointer-events-none"
         )}
       >
-        <div className="absolute inset-0 bg-black/10 backdrop-blur-[1px]" onClick={() => setPanelOpen(false)} />
+        <div className="absolute inset-0 bg-black/10" onClick={() => setPanelOpen(false)} />
         
         <div 
           className={cn(
@@ -182,7 +215,7 @@ export default function SettlementsPage() {
               </div>
               <button 
                 onClick={() => setPanelOpen(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-secondary transition-colors"
+                className="flex h-8 w-8 items-center justify-center rounded-full"
               >
                 <Icon icon="solar:close-circle-bold-duotone" className="w-5 h-5 text-muted-foreground" />
               </button>
@@ -274,20 +307,51 @@ export default function SettlementsPage() {
                       
                       {amountNum > 0 && (
                         <div className="p-4 rounded-xl bg-primary/5 border border-primary/10 space-y-2.5">
+                          {recipientId && (
+                            <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider">
+                              <span className="text-primary/60">Quote Source</span>
+                              <span className="text-primary">{payoutQuote ? "Busha Live" : "Demo Estimate"}</span>
+                            </div>
+                          )}
                           <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider">
                             <span className="text-primary/60">Platform Fee (0.3%)</span>
                             <span className="text-primary">-{formatCurrency(fee)}</span>
                           </div>
+                          {payoutQuote?.fees?.length ? (
+                            <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider">
+                              <span className="text-primary/60">Busha Fees</span>
+                              <span className="text-primary">
+                                {payoutQuote.fees.map((item) => `${item.amount} ${item.currency || quoteCurrency}`).join(", ")}
+                              </span>
+                            </div>
+                          ) : null}
                           <div className="h-px bg-primary/10" />
                           <div className="flex justify-between items-end">
                             <span className="text-[10px] font-bold text-primary uppercase tracking-[0.2em]">Net Payout</span>
                             <div className="text-right">
                                <p className="text-base font-bold text-primary">
-                                 NGN {((amountNum - fee) * DEMO_RATE).toLocaleString()}
+                                 {payoutQuote
+                                   ? `${payoutQuote.target_currency} ${Number(payoutQuote.target_amount || 0).toLocaleString()}`
+                                   : `NGN ${((amountNum - fee) * DEMO_RATE).toLocaleString()}`}
                                </p>
-                               <p className="text-[9px] text-primary/60 font-bold uppercase tracking-tight">Live Rate applied</p>
+                               <p className="text-[9px] text-primary/60 font-bold uppercase tracking-tight">
+                                 {payoutQuote?.rate?.rate
+                                   ? `1 ${payoutQuote.source_currency} = ${Number(payoutQuote.rate.rate).toLocaleString()} ${payoutQuote.target_currency}`
+                                   : "Demo rate applied"}
+                               </p>
                             </div>
                           </div>
+                          {payoutQuote?.expires_at ? (
+                            <p className="text-[9px] font-bold uppercase tracking-tight text-primary/70">
+                              Quote expires {formatDate(payoutQuote.expires_at)}
+                            </p>
+                          ) : null}
+                          {isLoadingQuote ? (
+                            <p className="text-[9px] font-bold uppercase tracking-tight text-primary/70">Fetching live Busha quote...</p>
+                          ) : null}
+                          {payoutQuoteError ? (
+                            <p className="text-[9px] font-bold uppercase tracking-tight text-amber-700">{quoteErrorMessage}</p>
+                          ) : null}
                         </div>
                       )}
                     </div>
@@ -306,7 +370,7 @@ export default function SettlementsPage() {
                   <div className="p-3.5 rounded-xl bg-blue-50/50 flex items-start gap-2.5 border border-blue-100">
                     <Icon icon="solar:info-circle-bold-duotone" className="w-4 h-4 text-blue-500 mt-0.5" />
                     <p className="text-[10px] text-blue-800 leading-normal font-medium">
-                      Settlements are usually cleared within 15 minutes. Large amounts may require security review.
+                      Quote preview is fetched from Busha when available. Confirming this form now creates a live Busha transfer from the quote when your API credentials and payout path are valid.
                     </p>
                   </div>
                 </div>
@@ -319,7 +383,7 @@ export default function SettlementsPage() {
                 <button 
                   type="button" 
                   onClick={() => setPanelOpen(false)}
-                  className="flex-1 h-10 px-4 rounded-xl bg-white border border-border font-bold text-xs hover:bg-slate-50 transition-colors"
+                  className="h-10 flex-1 rounded-xl border border-border bg-white px-4 text-xs font-bold"
                 >
                   {selectedSettlement ? "Close" : "Cancel"}
                 </button>

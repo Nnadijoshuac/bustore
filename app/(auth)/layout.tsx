@@ -5,14 +5,14 @@ import { ArrowRight, CheckCircle2, Globe2 } from "lucide-react";
 const authHighlights = [
   "Create Busha-backed payment links in seconds",
   "Turn payer details into live payment requests with QR and status tracking",
-  "Manage customers, recipients, settlements, and webhook delivery from one dashboard",
+  "Manage customers, payout recipients, and settlements from one dashboard",
 ];
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(0,200,150,0.18),_transparent_28%),linear-gradient(180deg,_#0d1b2a_0%,_#102132_50%,_#f4f9f8_50%,_#f4f9f8_100%)] lg:bg-[linear-gradient(90deg,_#0d1b2a_0%,_#102132_50%,_#f4f9f8_50%,_#f4f9f8_100%)]">
       <div className="mx-auto grid min-h-screen max-w-[1440px] items-stretch gap-8 px-4 py-6 sm:px-8 lg:grid-cols-[1fr_minmax(480px,540px)] lg:gap-24 lg:px-12 xl:grid-cols-[1.1fr_minmax(520px,600px)] xl:gap-32">
-        <section className="hidden overflow-hidden flex-col justify-between rounded-[2rem] border border-white/10 bg-busha-slate/90 p-8 text-white shadow-2xl shadow-slate-950/20 backdrop-blur lg:flex xl:p-10">
+        <section className="hidden overflow-hidden flex-col justify-between rounded-[2rem] border border-white/10 bg-busha-slate/90 p-8 text-white shadow-2xl shadow-slate-950/20 lg:flex xl:p-10">
           <div className="mx-auto flex w-full max-w-lg flex-col">
             <Link href="/" className="flex items-center gap-3">
               <Image
@@ -56,7 +56,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
             </div>
           </div>
 
-          <Link href="/overview" className="inline-flex items-center gap-2 text-sm font-medium text-white/75 transition-colors hover:text-white">
+          <Link href="/overview" className="inline-flex items-center gap-2 text-sm font-medium text-white/75">
             View dashboard preview
             <ArrowRight className="h-4 w-4" />
           </Link>

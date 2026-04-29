@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useForm, useWatch } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Icon } from "@iconify/react";
@@ -62,7 +62,6 @@ export default function CustomersPage() {
     register,
     handleSubmit,
     reset,
-    control,
     formState: { errors },
   } = useForm<CustomerFormValues>({
     resolver: zodResolver(createCustomerBaseSchema.omit({ identifying_information: true })),
@@ -161,9 +160,9 @@ export default function CustomersPage() {
               <div
                 key={customer.id}
                 onClick={() => handleView(customer)}
-                className="group flex items-center gap-3 bg-card hover:bg-slate-50/50 p-3 rounded-xl transition-all cursor-pointer border border-transparent hover:border-border/50 shadow-sm"
+                className="flex cursor-pointer items-center gap-3 rounded-xl border border-transparent bg-card p-3 shadow-sm"
               >
-                <div className="w-10 h-10 rounded-lg bg-secondary text-muted-foreground flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
+                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-secondary text-muted-foreground">
                   <Icon icon="solar:user-bold-duotone" className="w-5 h-5" />
                 </div>
                 
@@ -207,7 +206,7 @@ export default function CustomersPage() {
           panelOpen ? "opacity-100" : "opacity-0 pointer-events-none"
         )}
       >
-        <div className="absolute inset-0 bg-black/10 backdrop-blur-[1px]" onClick={() => setPanelOpen(false)} />
+        <div className="absolute inset-0 bg-black/10" onClick={() => setPanelOpen(false)} />
         
         <div 
           className={cn(
@@ -228,7 +227,7 @@ export default function CustomersPage() {
               </div>
               <button 
                 onClick={() => setPanelOpen(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-secondary transition-colors"
+                className="flex h-8 w-8 items-center justify-center rounded-full"
               >
                 <Icon icon="solar:close-circle-bold-duotone" className="w-5 h-5 text-muted-foreground" />
               </button>
@@ -374,7 +373,7 @@ export default function CustomersPage() {
               {selectedCustomer ? (
                 <button 
                   onClick={() => setPanelOpen(false)}
-                  className="w-full h-10 rounded-xl bg-white border border-border font-bold text-xs hover:bg-slate-50 transition-colors"
+                  className="h-10 w-full rounded-xl border border-border bg-white text-xs font-bold"
                 >
                   Close Profile
                 </button>
@@ -383,7 +382,7 @@ export default function CustomersPage() {
                   <button 
                     type="button" 
                     onClick={() => setPanelOpen(false)}
-                    className="flex-1 h-10 px-4 rounded-xl bg-white border border-border font-bold text-xs hover:bg-slate-50 transition-colors"
+                    className="h-10 flex-1 rounded-xl border border-border bg-white px-4 text-xs font-bold"
                   >
                     Cancel
                   </button>

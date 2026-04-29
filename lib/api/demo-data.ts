@@ -1,5 +1,5 @@
 // ============================================================
-// Demo Mode Data — realistic mock data for the hackathon demo
+// Demo Mode Data - realistic mock data for the hackathon demo
 // ============================================================
 
 import {
@@ -11,7 +11,6 @@ import {
   Settlement,
   DashboardStats,
   ChartDataPoint,
-  Webhook,
 } from "@/types";
 
 export const DEMO_USER: User = {
@@ -56,7 +55,7 @@ export const DEMO_TRANSACTIONS: Transaction[] = [
     amount: 750,
     currency: "USD",
     status: "completed",
-    description: "Website redesign — 50% deposit",
+    description: "Website redesign - 50% deposit",
     reference: "BP-2024-0891",
     sender_name: "Priya Sharma",
     sender_email: "priya@fintechco.com",
@@ -135,7 +134,7 @@ export const DEMO_PAYMENT_LINKS: PaymentLink[] = [
     id: "pl-002",
     account_id: "demo-acct-001",
     title: "UI Design Retainer",
-    description: "Monthly design retainer — 20 hrs/month",
+    description: "Monthly design retainer - 20 hrs/month",
     amount: 2400,
     currency: "USD",
     status: "active",
@@ -276,20 +275,6 @@ export const DEMO_CHART_DATA: ChartDataPoint[] = [
   { date: "Jul 15", amount: 2100, count: 1 },
   { date: "Jul 17", amount: 1500, count: 1 },
   { date: "Jul 19", amount: 320, count: 1 },
-];
-
-export const DEMO_WEBHOOKS: Webhook[] = [
-  {
-    id: "wh-001",
-    account_id: "demo-acct-001",
-    url: "https://adebayodesigns.com/api/webhooks/bushapay",
-    events: ["payment.received", "settlement.completed"],
-    is_active: true,
-    secret: "whsec_demo_••••••••••••••••",
-    created_at: "2024-06-01T10:00:00Z",
-    last_triggered_at: "2024-07-18T14:23:00Z",
-    failure_count: 0,
-  },
 ];
 
 // Demo mode is enabled by default (useAppStore.isDemoMode = true)

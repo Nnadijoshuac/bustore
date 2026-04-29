@@ -32,7 +32,7 @@ export function SlideOver({
         open ? "opacity-100" : "pointer-events-none opacity-0"
       )}
     >
-      <div className="absolute inset-0 bg-black/10 backdrop-blur-[1px]" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/10" onClick={onClose} />
 
       <div
         className={cn(
@@ -56,7 +56,7 @@ export function SlideOver({
 
             <button
               onClick={onClose}
-              className="flex h-8 w-8 items-center justify-center rounded-full transition-colors hover:bg-secondary"
+              className="flex h-8 w-8 items-center justify-center rounded-full"
             >
               <Icon icon="solar:close-circle-bold-duotone" className="h-5 w-5 text-muted-foreground" />
             </button>

@@ -1,6 +1,6 @@
 import { DEMO_ACCOUNT } from "./demo-data";
 import { getBushaCheckoutUrl } from "./busha-client";
-import type { Customer, PaymentLink, PaymentTargetCurrency, Recipient, RecipientField, RecipientRequirement } from "@/types";
+import type { Account, Customer, PaymentLink, PaymentTargetCurrency, Quote, Recipient, RecipientField, RecipientRequirement, Settlement, Transaction } from "@/types";
 
 function asRecord(value: unknown): Record<string, unknown> {
   return typeof value === "object" && value !== null ? (value as Record<string, unknown>) : {};
@@ -12,6 +12,35 @@ function stringValue(value: unknown, fallback = "") {
 
 function booleanValue(value: unknown, fallback = false) {
   return typeof value === "boolean" ? value : fallback;
+}
+
+function numberValue(value: unknown, fallback = 0) {
+  const parsed = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function amountValue(value: unknown, fallback = 0) {
+  const record = asRecord(value);
+
+  if (Object.keys(record).length) {
+    return numberValue(record.amount, fallback);
+  }
+
+  return numberValue(value, fallback);
+}
+
+function amountCurrency(value: unknown, fallback = "USD") {
+  const record = asRecord(value);
+  return stringValue(record.currency, fallback);
+}
+
+function firstString(...values: unknown[]) {
+  for (const value of values) {
+    if (typeof value === "string" && value.trim().length > 0) {
+      return value;
+    }
+  }
+  return "";
 }
 
 function slugify(value: string) {
@@ -39,6 +68,14 @@ function normalizeTargetCurrency(value: unknown, fallback: PaymentTargetCurrency
     return normalized;
   }
 
+  return fallback;
+}
+
+function normalizeCurrency(value: unknown, fallback: Transaction["currency"] = "USD"): Transaction["currency"] {
+  const normalized = stringValue(value, fallback).toUpperCase();
+  if (normalized === "USD" || normalized === "EUR" || normalized === "GBP" || normalized === "NGN" || normalized === "GHS" || normalized === "KES" || normalized === "ZAR") {
+    return normalized;
+  }
   return fallback;
 }
 
@@ -111,6 +148,189 @@ export function normalizeCustomer(data: Record<string, unknown>, fallback?: Part
   };
 }
 
+export function normalizeTransaction(data: Record<string, unknown>): Transaction {
+  const source = asRecord(data.source);
+  const destination = asRecord(data.destination);
+  const meta = asRecord(data.meta);
+  const typeName = stringValue(data.type || data.transaction_type || data.kind, "transaction").toLowerCase();
+  const statusName = stringValue(data.status, "completed").toLowerCase();
+  const isCredit = typeof data.is_credit === "boolean" ? data.is_credit : undefined;
+  const fiatCurrency = stringValue(data.fiat_currency || meta.fiat_currency || data.currency, "USD");
+  const fiatValue = data.fiat_value ?? meta.fiat_value ?? data.amount;
+  const amount = numberValue(fiatValue, numberValue(data.amount));
+  const currency = normalizeCurrency(fiatCurrency);
+  const isSettlement = typeName.includes("withdraw");
+  const isOutgoing = typeName.includes("fee") || typeName.includes("withdraw") || isCredit === false;
+  const type: Transaction["type"] = isSettlement ? "settlement" : isOutgoing ? "outgoing" : "incoming";
+  const description = firstString(
+    data.description,
+    data.title,
+    data.narration,
+    typeName
+      .split(/[_\s-]+/)
+      .filter(Boolean)
+      .map((part) => part[0]?.toUpperCase() + part.slice(1))
+      .join(" ")
+  ) || "Transaction";
+  const counterparty = firstString(
+    source.account_name,
+    source.name,
+    destination.account_name,
+    destination.name,
+    source.account_number,
+    destination.account_number
+  ) || undefined;
+
+  return {
+    id: stringValue(data.id, `txn-${Date.now()}`),
+    account_id: DEMO_ACCOUNT.id,
+    type,
+    amount,
+    currency,
+    status:
+      statusName === "pending" || statusName === "processing" || statusName === "failed" || statusName === "refunded"
+        ? statusName
+        : "completed",
+    description,
+    reference: stringValue(data.reference, stringValue(data.id, "")),
+    sender_name: counterparty,
+    sender_email: firstString(source.email, destination.email) || undefined,
+    created_at: stringValue(data.created_at, new Date().toISOString()),
+    settled_at: firstString(data.completed_at, data.updated_at) || undefined,
+    metadata: data,
+  };
+}
+
+export function normalizeQuote(data: Record<string, unknown>): Quote {
+  const rate = asRecord(data.rate);
+  const fees = Array.isArray(data.fees) ? data.fees.map(asRecord) : [];
+
+  return {
+    id: stringValue(data.id),
+    source_currency: stringValue(data.source_currency),
+    target_currency: stringValue(data.target_currency),
+    source_amount: stringValue(data.source_amount),
+    target_amount: stringValue(data.target_amount),
+    quote_currency: stringValue(data.quote_currency) || undefined,
+    quote_amount: stringValue(data.quote_amount) || undefined,
+    reference: stringValue(data.reference, stringValue(data.id)),
+    status: stringValue(data.status, "pending"),
+    expires_at: stringValue(data.expires_at),
+    created_at: stringValue(data.created_at) || undefined,
+    updated_at: stringValue(data.updated_at) || undefined,
+    rate: Object.keys(rate).length
+      ? {
+          product: stringValue(rate.product) || undefined,
+          pair: stringValue(rate.pair) || undefined,
+          rate: stringValue(rate.rate),
+          side: stringValue(rate.side) || undefined,
+          type: stringValue(rate.type) || undefined,
+          source_currency: stringValue(rate.source_currency) || undefined,
+          target_currency: stringValue(rate.target_currency) || undefined,
+        }
+      : undefined,
+    fees: fees.map((fee) => ({
+      name: stringValue(fee.name) || undefined,
+      amount: stringValue(fee.amount),
+      currency: stringValue(fee.currency) || undefined,
+    })),
+  };
+}
+
+export function normalizeAccountSummary(items: Record<string, unknown>[]): Account {
+  const preferredLocalCurrencies = ["NGN", "KES", "GHS", "ZAR", "USD", "EUR", "GBP"];
+  let usdBalance = 0;
+  const fiatBalances = new Map<string, number>();
+
+  for (const item of items) {
+    const available = asRecord(item.available);
+    const availableAmount = amountValue(available.amount, amountValue(available));
+    const availableFiat = asRecord(available.fiat);
+    const currency = stringValue(item.currency).toUpperCase();
+    const type = stringValue(item.type).toLowerCase();
+    const fiatAmount = amountValue(availableFiat.amount, availableAmount);
+    const fiatCurrency = stringValue(availableFiat.currency, currency).toUpperCase();
+
+    if (currency === "USD" && type === "fiat") {
+      usdBalance += availableAmount;
+    } else if (fiatCurrency === "USD") {
+      usdBalance += fiatAmount;
+    }
+
+    if (type === "fiat" && currency) {
+      fiatBalances.set(currency, (fiatBalances.get(currency) || 0) + availableAmount);
+    }
+  }
+
+  const localCurrency =
+    preferredLocalCurrencies.find((currency) => fiatBalances.has(currency)) ||
+    [...fiatBalances.keys()][0] ||
+    DEMO_ACCOUNT.local_currency;
+  const localBalance = fiatBalances.get(localCurrency) || usdBalance || DEMO_ACCOUNT.balance_local;
+  const primaryProfile =
+    items.find((item) => typeof item.profile_id === "string") || items.find((item) => typeof item.user_id === "string");
+
+  return {
+    id: stringValue(primaryProfile?.profile_id, DEMO_ACCOUNT.id),
+    user_id: stringValue(primaryProfile?.user_id, DEMO_ACCOUNT.user_id),
+    balance_usd: usdBalance || (localCurrency === "USD" ? localBalance : DEMO_ACCOUNT.balance_usd),
+    balance_local: localBalance,
+    local_currency: normalizeCurrency(localCurrency, DEMO_ACCOUNT.local_currency) as Account["local_currency"],
+    is_demo: false,
+  };
+}
+
+function normalizeSettlementStatus(status: string): Settlement["status"] {
+  switch (status.toLowerCase()) {
+    case "pending":
+      return "pending";
+    case "processing":
+    case "funds_received":
+    case "outgoing_payment_sent":
+      return "processing";
+    case "completed":
+    case "funds_delivered":
+    case "funds_converted":
+      return "settled";
+    default:
+      return "failed";
+  }
+}
+
+export function normalizeSettlement(data: Record<string, unknown>, recipient?: Recipient): Settlement {
+  const payOut = asRecord(data.pay_out);
+  const rate = asRecord(data.rate);
+  const fees = Array.isArray(data.fees) ? data.fees.map(asRecord) : [];
+  const sourceCurrency = stringValue(data.source_currency, "USD").toUpperCase();
+  const targetCurrency = stringValue(data.target_currency, recipient?.currency || "NGN").toUpperCase();
+  const sourceAmount = numberValue(data.source_amount);
+  const targetAmount = numberValue(data.target_amount);
+  const feeUsd = fees.reduce((sum, fee) => {
+    const feeAmount = amountValue(fee.amount, amountValue(fee));
+    const feeCurrency = amountCurrency(fee.amount, stringValue(fee.currency, "USD")).toUpperCase();
+    return feeCurrency === "USD" ? sum + feeAmount : sum;
+  }, 0);
+  const exchangeRate =
+    numberValue(rate.rate) || (sourceAmount > 0 ? Number((targetAmount / sourceAmount).toFixed(6)) : 0);
+
+  return {
+    id: stringValue(data.id, `set-${Date.now()}`),
+    account_id: DEMO_ACCOUNT.id,
+    recipient_id: recipient?.id || stringValue(payOut.recipient_id, "unknown-recipient"),
+    recipient,
+    amount_usd: sourceCurrency === "USD" ? sourceAmount : 0,
+    amount_local: targetAmount,
+    local_currency: normalizeCurrency(targetCurrency, recipient?.currency || "NGN") as Settlement["local_currency"],
+    exchange_rate: exchangeRate,
+    fee_usd: feeUsd,
+    status: normalizeSettlementStatus(stringValue(data.status, "processing")),
+    reference: stringValue(data.reference, stringValue(data.id)),
+    note: stringValue(data.description) || undefined,
+    created_at: stringValue(data.created_at, new Date().toISOString()),
+    completed_at: firstString(data.completed_at, data.updated_at) || undefined,
+  };
+}
+
 export function normalizeRecipientField(value: unknown): RecipientField {
   const field = asRecord(value);
   return {
@@ -151,6 +371,7 @@ export function normalizeRecipient(data: Record<string, unknown>): Recipient {
     is_verified: booleanValue(data.active, true),
     created_at: stringValue(data.created_at, new Date().toISOString()),
     type: stringValue(data.type),
+    category: stringValue(data.category),
     legal_entity_type: stringValue(data.legal_entity_type),
     active: typeof data.active === "boolean" ? data.active : true,
     owned_by_customer: typeof data.owned_by_customer === "boolean" ? data.owned_by_customer : undefined,

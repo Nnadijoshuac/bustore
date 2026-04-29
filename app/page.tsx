@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Check, ChevronRight, Zap, Globe, Shield, BarChart3, Link2, Users, Webhook, CreditCard } from "lucide-react";
+import { ArrowRight, Check, ChevronRight, Zap, Globe, BarChart3, Link2, Users, CreditCard } from "lucide-react";
 
 /* ─── DATA ──────────────────────────────────────────────────── */
 
@@ -32,32 +32,27 @@ const features = [
     title: "Customer & Recipient Hub",
     description: "Onboard, verify, and manage customers and payout recipients from a single, clean workspace.",
   },
-  {
-    icon: Webhook,
-    title: "Webhook Visibility",
-    description: "Inspect every payment event in real time. Full webhook log with status, payload, and retry history.",
-  },
 ];
 
 const steps = [
   { step: "01", title: "Create a payment link", body: "Give it a name, amount, and currency. Or let Fluent AI write the copy from your rough notes." },
   { step: "02", title: "Share it with your client", body: "Send the link via WhatsApp, email, or invoice. No account needed on their end." },
-  { step: "03", title: "Client initiates checkout", body: "Fluent generates a live Busha payment request the moment they hit 'Pay Now'." },
+  { step: "03", title: "Client initiates checkout", body: "Fluent generates a live Busha payment request the moment they hit \"Pay Now\"." },
   { step: "04", title: "Get paid. Track it all.", body: "See settlement status, transaction history, and AI insights — all in one dashboard." },
 ];
 
 const audiences = [
-  { icon: "🎨", label: "Freelancers", desc: "Brand designers, developers, copywriters — anyone billing clients globally." },
-  { icon: "🏢", label: "Lean Agencies", desc: "Small teams that need a clean payment stack without a full Stripe setup." },
-  { icon: "🎬", label: "Creators", desc: "Coaches, educators, and digital product sellers collecting from anywhere." },
-  { icon: "🌍", label: "African Businesses", desc: "Any business that wants to collect globally and settle locally in crypto or fiat." },
+  { label: "Freelancers", desc: "Brand designers, developers, copywriters — anyone billing clients globally." },
+  { label: "Lean Agencies", desc: "Small teams that need a clean payment stack without a full Stripe setup." },
+  { label: "Creators", desc: "Coaches, educators, and digital product sellers collecting from anywhere." },
+  { label: "African Businesses", desc: "Any business that wants to collect globally and settle locally in crypto or fiat." },
 ];
 
 const stats = [
   { value: "2 min", label: "Average link creation time" },
   { value: "190+", label: "Countries your clients can pay from" },
   { value: "100%", label: "Busha-powered, real-time settlement" },
-  { value: "0 fees", label: "From Fluent — pay only Busha rates" },
+  { value: "very low", label: " Fees" },
 ];
 
 /* ─── COMPONENTS ─────────────────────────────────────────────── */
@@ -65,21 +60,17 @@ const stats = [
 function NavBar() {
   return (
     <header className="sticky top-4 z-50 mx-auto w-full max-w-6xl px-4">
-      <div className="flex items-center justify-between rounded-full border border-slate-200/80 bg-white/90 px-5 py-3 shadow-lg shadow-slate-900/5 backdrop-blur-xl">
+      <div className="flex items-center justify-between rounded-full border border-slate-200/80 bg-white/90 px-5 py-3 shadow-lg shadow-slate-900/5">
         <Link href="/" className="flex items-center gap-3">
           <Image src="/logo_fluent.png" alt="Fluent" width={120} height={40} className="h-8 w-auto object-contain" priority />
           <span className="text-[13px] font-bold uppercase tracking-[0.3em] text-slate-900">Fluent</span>
         </Link>
-        <nav className="hidden items-center gap-6 md:flex">
-          <a href="#features" className="text-[12px] font-semibold text-slate-500 transition-colors hover:text-slate-900">Features</a>
-          <a href="#how-it-works" className="text-[12px] font-semibold text-slate-500 transition-colors hover:text-slate-900">How it works</a>
-          <a href="#who-its-for" className="text-[12px] font-semibold text-slate-500 transition-colors hover:text-slate-900">Who it's for</a>
-        </nav>
+        <nav className="hidden items-center gap-6 md:flex" />
         <div className="flex items-center gap-2">
-          <Link href="/login" className="hidden rounded-full border border-slate-200 bg-white px-4 py-2 text-[11px] font-bold uppercase tracking-widest text-slate-700 transition-all hover:border-slate-400 sm:inline-flex">
+          <Link href="/login" className="hidden rounded-full border border-slate-200 bg-white px-4 py-2 text-[11px] font-bold uppercase tracking-widest text-slate-700 sm:inline-flex">
             Sign in
           </Link>
-          <Link href="/register" className="inline-flex items-center gap-1.5 rounded-full bg-[#00C896] px-4 py-2 text-[11px] font-bold uppercase tracking-widest text-white shadow-lg shadow-emerald-500/25 transition-all hover:bg-[#00A87E]">
+          <Link href="/register" className="inline-flex items-center gap-1.5 rounded-full bg-[#00C896] px-4 py-2 text-[11px] font-bold uppercase tracking-widest text-white">
             Get started <ArrowRight className="h-3 w-3" />
           </Link>
         </div>
@@ -91,13 +82,6 @@ function NavBar() {
 function Hero() {
   return (
     <section className="relative overflow-hidden px-4 pb-20 pt-10">
-      {/* Background glows */}
-      <div className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute left-1/2 top-0 h-[600px] w-[900px] -translate-x-1/2 rounded-full bg-[#00C896]/8 blur-[120px]" />
-        <div className="absolute -left-20 top-40 h-72 w-72 rounded-full bg-emerald-400/10 blur-[80px]" />
-        <div className="absolute -right-20 bottom-0 h-72 w-72 rounded-full bg-slate-800/5 blur-[80px]" />
-      </div>
-
       <div className="mx-auto max-w-6xl">
         {/* Badge */}
         <div className="mb-8 flex justify-center">
@@ -120,16 +104,16 @@ function Hero() {
             deserve.
           </h1>
           <p className="mx-auto mt-7 max-w-2xl text-lg leading-8 text-slate-500">
-            Send a polished payment link. Your client pays in seconds. You collect globally — and settle locally — through Busha's live payment infrastructure.
+            Send a polished payment link. Your client pays in seconds. You collect globally — and settle locally — through Busha&rsquo;s live payment infrastructure.
           </p>
         </div>
 
         {/* CTAs */}
         <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-          <Link href="/register" className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-7 py-3.5 text-[12px] font-bold uppercase tracking-[0.22em] text-white transition-all hover:bg-slate-800 hover:shadow-xl">
+          <Link href="/register" className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-7 py-3.5 text-[12px] font-bold uppercase tracking-[0.22em] text-white">
             Launch your workspace <ArrowRight className="h-4 w-4" />
           </Link>
-          <Link href="/overview" className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-7 py-3.5 text-[12px] font-bold uppercase tracking-[0.22em] text-slate-700 transition-all hover:border-slate-400">
+          <Link href="/overview" className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-7 py-3.5 text-[12px] font-bold uppercase tracking-[0.22em] text-slate-700">
             View live demo <ChevronRight className="h-4 w-4" />
           </Link>
         </div>
@@ -145,14 +129,13 @@ function Hero() {
 
         {/* Dashboard preview */}
         <div className="relative mx-auto mt-16 max-w-4xl">
-          <div className="absolute -inset-4 rounded-[2.5rem] bg-gradient-to-b from-[#00C896]/15 to-transparent blur-2xl" />
           <div className="relative overflow-hidden rounded-[2rem] border border-slate-200 bg-slate-950 p-6 shadow-[0_60px_160px_rgba(15,23,42,0.25)]">
             {/* Mock dashboard */}
             <div className="mb-4 flex items-center gap-2">
               <div className="h-2.5 w-2.5 rounded-full bg-red-400/70" />
               <div className="h-2.5 w-2.5 rounded-full bg-yellow-400/70" />
               <div className="h-2.5 w-2.5 rounded-full bg-emerald-400/70" />
-              <div className="ml-3 flex-1 rounded-full bg-white/5 px-4 py-1 text-[10px] text-white/30">fluent.app/overview</div>
+              <div className="ml-3 flex-1 rounded-full bg-white/5 px-4 py-1 text-[10px] text-white/30">https://bushafluent.vercel.app/overview</div>
             </div>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               {[
@@ -216,8 +199,8 @@ function Features() {
         </div>
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {features.map((f) => (
-            <div key={f.title} className="group rounded-2xl border border-slate-100 bg-white p-6 shadow-sm transition-all hover:border-[#00C896]/30 hover:shadow-md">
-              <div className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-[#00C896]/10 text-[#00C896] transition-colors group-hover:bg-[#00C896] group-hover:text-white">
+            <div key={f.title} className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+              <div className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-[#00C896]/10 text-[#00C896]">
                 <f.icon className="h-5 w-5" />
               </div>
               <h3 className="mb-2 font-display text-base font-bold text-slate-900">{f.title}</h3>
@@ -252,7 +235,6 @@ function HowItWorks() {
 
         {/* AI callout */}
         <div className="relative mt-8 overflow-hidden rounded-2xl border border-[#00C896]/20 bg-[#00C896]/8 p-8">
-          <div className="absolute right-0 top-0 h-48 w-48 rounded-full bg-[#00C896]/15 blur-3xl" />
           <div className="relative flex flex-col items-start gap-4 sm:flex-row sm:items-center">
             <Image src="/logo_fluent_ai.png" alt="Fluent AI" width={48} height={48} className="h-12 w-auto object-contain" />
             <div className="flex-1">
@@ -261,7 +243,7 @@ function HowItWorks() {
                 AI generates your payment link copy and surfaces business insights directly in your dashboard — no prompts, no plugins.
               </p>
             </div>
-            <Link href="/register" className="shrink-0 rounded-full bg-[#00C896] px-5 py-2.5 text-[11px] font-bold uppercase tracking-widest text-white transition-all hover:bg-[#00A87E]">
+            <Link href="/register" className="shrink-0 rounded-full bg-[#00C896] px-5 py-2.5 text-[11px] font-bold uppercase tracking-widest text-white">
               Try it free
             </Link>
           </div>
@@ -276,15 +258,14 @@ function WhoItsFor() {
     <section id="who-its-for" className="px-4 py-24">
       <div className="mx-auto max-w-5xl">
         <div className="mx-auto mb-16 max-w-xl text-center">
-          <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.32em] text-[#00C896]">Who it's for</p>
+          <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.32em] text-[#00C896]">Who it&apos;s for</p>
           <h2 className="font-display text-4xl font-bold tracking-[-0.03em] text-slate-950 sm:text-5xl">
             Built for people who work globally but live in Africa.
           </h2>
         </div>
         <div className="grid gap-5 sm:grid-cols-2">
           {audiences.map((a) => (
-            <div key={a.label} className="flex gap-5 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
-              <span className="text-3xl">{a.icon}</span>
+            <div key={a.label} className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
               <div>
                 <h3 className="font-display text-base font-bold text-slate-900">{a.label}</h3>
                 <p className="mt-1 text-[13px] leading-6 text-slate-500">{a.desc}</p>
@@ -305,10 +286,10 @@ function PayFlowPreview() {
           <div>
             <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.32em] text-[#00C896]">Public pay page</p>
             <h2 className="font-display text-4xl font-bold tracking-[-0.03em] text-slate-950">
-              Your client's checkout — polished and instant.
+              Your client&apos;s checkout — polished and instant.
             </h2>
             <p className="mt-5 text-[15px] leading-7 text-slate-500">
-              When your client opens your payment link, Fluent creates a live Busha payment request on the spot. They see a QR code, wallet address, exact amount, and real-time payment confirmation — all on a branded page with your link's name.
+              When your client opens your payment link, Fluent creates a live Busha payment request on the spot. They see a QR code, wallet address, exact amount, and real-time payment confirmation — all on a branded page with your link&apos;s name.
             </p>
             <ul className="mt-7 space-y-3">
               {[
@@ -329,7 +310,6 @@ function PayFlowPreview() {
 
           {/* Mock pay page card */}
           <div className="relative">
-            <div className="absolute -inset-2 rounded-[2.5rem] bg-[#00C896]/10 blur-2xl" />
             <div className="relative overflow-hidden rounded-[2rem] border border-slate-200 bg-white p-7 shadow-xl">
               <div className="mb-5 flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#00C896]/10">
@@ -342,7 +322,7 @@ function PayFlowPreview() {
               </div>
               <div className="mb-5 rounded-xl bg-slate-950 p-5 text-center">
                 <div className="mx-auto grid h-28 w-28 grid-cols-7 gap-0.5">
-                  {[1,0,1,1,0,1,0,0,1,0,0,1,0,1,1,0,1,0,1,1,0,1,1,0,0,1,1,1,0,1,1,0,1,0,1,1,0,0,1,1,0,0,1,0,1,1,1,0,1].map((on, i) => (
+                  {[1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 1, 0, 1].map((on, i) => (
                     <div key={i} className={`rounded-sm ${on ? "bg-white" : "bg-transparent"}`} />
                   ))}
                 </div>
@@ -379,7 +359,6 @@ function CTA() {
     <section className="px-4 py-24">
       <div className="mx-auto max-w-3xl text-center">
         <div className="relative overflow-hidden rounded-[2.5rem] bg-slate-950 px-8 py-16 shadow-2xl">
-          <div className="absolute left-1/2 top-0 h-64 w-64 -translate-x-1/2 rounded-full bg-[#00C896]/20 blur-3xl" />
           <div className="relative">
             <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.32em] text-[#00C896]">Get started today</p>
             <h2 className="font-display text-4xl font-bold tracking-[-0.03em] text-white sm:text-5xl">
@@ -389,10 +368,10 @@ function CTA() {
               Open your Fluent workspace, connect your Busha account, and start collecting globally — with zero platform fees from Fluent.
             </p>
             <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-              <Link href="/register" className="inline-flex items-center gap-2 rounded-full bg-[#00C896] px-8 py-4 text-[12px] font-bold uppercase tracking-widest text-white shadow-lg shadow-emerald-500/30 transition-all hover:bg-[#00A87E] hover:shadow-emerald-500/40">
+              <Link href="/register" className="inline-flex items-center gap-2 rounded-full bg-[#00C896] px-8 py-4 text-[12px] font-bold uppercase tracking-widest text-white">
                 Launch workspace free <ArrowRight className="h-4 w-4" />
               </Link>
-              <Link href="/overview" className="inline-flex items-center gap-2 rounded-full border border-white/15 px-8 py-4 text-[12px] font-bold uppercase tracking-widest text-white/70 transition-all hover:border-white/30 hover:text-white">
+              <Link href="/overview" className="inline-flex items-center gap-2 rounded-full border border-white/15 px-8 py-4 text-[12px] font-bold uppercase tracking-widest text-white/70">
                 View demo first
               </Link>
             </div>

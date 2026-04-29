@@ -1,13 +1,13 @@
 # Fluent
 
-Fluent is a Busha-powered payments workspace for freelancers, creators, and lean African businesses. It wraps Busha payment links, payment requests, customers, recipients, and webhook flows in a cleaner product experience.
+Fluent is a Busha-powered payments workspace for freelancers, creators, and lean African businesses. It wraps Busha payment links, payment requests, customers, recipients, and settlements in a cleaner product experience.
 
 ## What it does
 
 - Create payment links for invoices or project milestones
 - Turn payer details into live Busha payment requests
 - Show QR code, address, amount, and payment status polling on the public pay page
-- Manage customers, recipients, settlements, and webhook activity from a single dashboard
+- Manage customers, recipients, and settlements from a single dashboard
 
 ## Submission angle
 
@@ -44,8 +44,7 @@ This makes the demo easy to explain in a hackathon:
 - `/pay/[slug]` - public payment flow backed by Busha payment requests
 - `/customers` - Busha customer creation and verification
 - `/recipients` - recipient management
-- `/webhooks` - webhook visibility
-
+- `/settlements` - cash-out flow to saved recipients
 ## Local setup
 
 ```bash
@@ -65,7 +64,6 @@ Important integration variables:
 - `BUSHA_API_SECRET`
 - `BUSHA_API_BASE_URL`
 - `NEXT_PUBLIC_BUSHA_PUBLIC_API_KEY`
-- `BUSHA_WEBHOOK_SIGNING_SECRET`
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY`
@@ -76,7 +74,6 @@ Important integration variables:
 - Payment requests: live Busha API
 - Customers: Busha-backed, with sandbox limitations on some create flows
 - Recipients: Busha-backed, depending on sandbox-supported requirements endpoints
-- Webhooks: receiver and dashboard present
 
 ## Validation
 

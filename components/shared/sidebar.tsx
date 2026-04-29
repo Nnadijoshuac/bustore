@@ -13,10 +13,9 @@ const NAV_ITEMS = [
   { href: "/overview", label: "Overview", icon: "solar:widget-2-bold-duotone" },
   { href: "/transactions", label: "Transactions", icon: "solar:transfer-horizontal-bold-duotone" },
   { href: "/payment-links", label: "Payment Links", icon: "solar:link-bold-duotone" },
-  { href: "/recipients", label: "Recipients", icon: "solar:target-bold-duotone" },
+  { href: "/recipients", label: "Payout Accounts", icon: "solar:target-bold-duotone" },
   { href: "/customers", label: "Customers", icon: "solar:users-group-rounded-bold-duotone" },
-  { href: "/settlements", label: "Settlements", icon: "solar:card-send-bold-duotone" },
-  { href: "/webhooks", label: "Webhooks", icon: "solar:webhook-bold-duotone" },
+  { href: "/settlements", label: "Cash Out", icon: "solar:card-send-bold-duotone" },
 ];
 
 const BOTTOM_NAV = [{ href: "/settings", label: "Settings", icon: "solar:settings-bold-duotone" }];
@@ -41,7 +40,7 @@ export function Sidebar() {
     <>
       <div
         className={cn(
-          "fixed inset-0 z-30 bg-slate-950/20 backdrop-blur-[2px] transition-opacity md:hidden",
+          "fixed inset-0 z-30 bg-slate-950/20 transition-opacity md:hidden",
           mobileSidebarOpen ? "opacity-100" : "pointer-events-none opacity-0"
         )}
         onClick={closeMobileSidebar}
@@ -77,7 +76,7 @@ export function Sidebar() {
           </div>
           
           {mobileSidebarOpen && (
-            <button onClick={toggleMobileSidebar} className="p-1.5 hover:bg-secondary rounded-lg transition-colors">
+            <button onClick={toggleMobileSidebar} className="rounded-lg p-1.5">
               <Icon icon="solar:close-circle-bold-duotone" className="w-5 h-5 text-muted-foreground" />
             </button>
           )}
@@ -92,15 +91,15 @@ export function Sidebar() {
                 key={href}
                 href={href}
                 className={cn(
-                  "group flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs font-bold transition-all",
+                  "flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs font-bold",
                   active 
                     ? "bg-primary/10 text-primary shadow-sm shadow-primary/5" 
-                    : "text-muted-foreground hover:bg-secondary hover:text-foreground",
+                    : "text-muted-foreground",
                   !showExpanded && "justify-center px-0 h-9 w-9 mx-auto"
                 )}
                 title={!showExpanded ? label : undefined}
               >
-                <Icon icon={icon} className={cn("w-4.5 h-4.5 shrink-0 transition-transform group-hover:scale-110", active && "scale-105")} />
+                <Icon icon={icon} className={cn("w-4.5 h-4.5 shrink-0", active && "scale-105")} />
                 {showExpanded ? <span>{label}</span> : null}
               </Link>
             );
@@ -114,10 +113,10 @@ export function Sidebar() {
                 key={href}
                 href={href}
                 className={cn(
-                  "flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs font-bold transition-all",
+                  "flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs font-bold",
                   pathname === href 
                     ? "bg-primary/10 text-primary shadow-sm shadow-primary/5" 
-                    : "text-muted-foreground hover:bg-secondary hover:text-foreground",
+                    : "text-muted-foreground",
                   !showExpanded && "justify-center px-0 h-9 w-9 mx-auto"
                 )}
                 title={!showExpanded ? label : undefined}
@@ -148,7 +147,7 @@ export function Sidebar() {
             type="button"
             onClick={toggleSidebar}
             className={cn(
-              "hidden w-full items-center gap-2.5 px-2.5 py-1.5 text-[10px] font-bold text-muted-foreground hover:text-foreground md:flex transition-colors",
+              "hidden w-full items-center gap-2.5 px-2.5 py-1.5 text-[10px] font-bold text-muted-foreground md:flex",
               !showExpanded && "justify-center"
             )}
           >

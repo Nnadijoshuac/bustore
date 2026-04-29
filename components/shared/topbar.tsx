@@ -2,9 +2,6 @@
 
 import { Icon } from "@iconify/react";
 import { useAppStore } from "@/lib/store/app.store";
-import { formatCurrency } from "@/lib/utils";
-import { DEMO_ACCOUNT } from "@/lib/api/demo-data";
-import { cn } from "@/lib/utils";
 
 interface TopbarProps {
   title: string;
@@ -25,13 +22,13 @@ export function Topbar({ title, description, actions }: TopbarProps) {
         </div>
       ) : null}
 
-      <header className="border-b border-border/50 bg-background/80 px-4 py-3 backdrop-blur-xl transition-all sm:px-8">
+      <header className="border-b border-border/50 bg-background/80 px-4 py-3 sm:px-8">
         <div className="flex items-center justify-between gap-4">
           <div className="flex min-w-0 items-center gap-3">
             <button
               type="button"
               onClick={toggleMobileSidebar}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary text-muted-foreground transition-all hover:bg-muted hover:text-foreground md:hidden"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary text-muted-foreground md:hidden"
             >
               <Icon icon="solar:hamburger-menu-bold-duotone" className="h-5 w-5" />
             </button>
@@ -55,9 +52,9 @@ export function Topbar({ title, description, actions }: TopbarProps) {
             
             <button
               type="button"
-              className="group relative flex h-9 w-9 items-center justify-center rounded-lg bg-secondary transition-all hover:bg-muted"
+              className="relative flex h-9 w-9 items-center justify-center rounded-lg bg-secondary"
             >
-              <Icon icon="solar:bell-bing-bold-duotone" className="h-4.5 w-4.5 text-muted-foreground group-hover:text-primary transition-colors" />
+              <Icon icon="solar:bell-bing-bold-duotone" className="h-4.5 w-4.5 text-muted-foreground" />
               <span className="absolute right-2.5 top-2.5 flex h-1.5 w-1.5">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
                 <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-primary" />
